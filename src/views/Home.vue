@@ -1,42 +1,35 @@
 <template>
   <div class="home">
     <div class="content">
-      <Select v-model="user" clearable filterable style="width: 600px;margin: 0 auto;">
-        <Option v-for="(item,index) in user_list" :key="index" :value="item.core_user_id">{{item.display_name}}</Option>
-      </Select>
+      <oc-select v-model="user" multiple style="width: 600px;">
+        <oc-option v-for="(item,index) in user_list" :key="index" :value="item.core_user_id">{{item.display_name}}</oc-option>
+      </oc-select>
     </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Select from '@/components/select/select'
-import Option from '@/components/select/option'
+import { ocSelect, ocOption } from '@/components/select'
+import '@/components/select/select.scss'
 import user from "./user.js";
 export default {
   name: 'home',
-  components: {
-    Select, Option
-  },
+  components: { ocSelect, ocOption },
   data() {
     return {
-      user: '1',
+      user: ['1'],
       user_list: user
-    }
-  },
-  watch: {
-    user(val) {
-      console.log(val);
     }
   }
 }
 </script>
 <style lang="scss" scoped>
 .home {
-  background: #f3f3f3;
   padding: 300px 0;
   .content {
     margin: 0 auto;
+    text-align: center;
   }
 }
 

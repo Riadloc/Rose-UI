@@ -5,34 +5,70 @@
   v-click-outside:mousedown.capture="onClickOutside"
   >
     <div
-      class="select-selection"
+      ref="selection"
+      :class="`${prefixCls}-selection`"
       @click="onInputClick"
-      @focus="toggleFocus"
       @mouseenter="hasMouseHoverHead = true"
       @mouseleave="hasMouseHoverHead = false">
       <div v-if="multiple">
-        <ul class="select-multiple-list">
-          
-        </ul>
+        <Tag
+          :class="`${prefixCls}-tag`"
+          v-for="(item, index) in values"
+          :key="item.value"
+          closable
+          @on-close="removeTag(index)">{{ item.label }}
+        </Tag>
+        <input
+          v-if="filterable || !values.length"
+          @keydown.delete="removeTag(values.length-1)"
+          ref="input" :style="inputStyle"
+          v-model="query"
+          :class="`${prefixCls}-input`"
+          :readonly="!filterable"
+          autocomplete="false"
+          spellcheck="false"
+          type="text"
+          :placeholder="values.length?'':placeholder"
+        />
       </div>
       <div v-else>
-        <input v-model="query" class="select-input" :readonly="!filterable || disabled" autocomplete="false" spellcheck="false" type="text" :placeholder="placeholder">
-        <Icon class="select-arrow" type="ios-close-circle" v-if="canBeCleared" @click.native.stop="clearSelect" />
-        <Icon class="select-arrow" type="ios-arrow-down" v-else />
+        <input
+          v-model="query"
+          :class="`${prefixCls}-input`"
+          :readonly="!filterable || disabled"
+          autocomplete="false"
+          spellcheck="false"
+          type="text"
+          :placeholder="placeholder"
+        />
       </div>
+      <Icon
+        v-if="canBeCleared"
+        :class="`${prefixCls}-arrow`"
+        type="ios-close-circle"
+        @click.native.stop="clearSelect"/>
+      <Icon
+        v-else
+        :class="`${prefixCls}-arrow`"
+        type="ios-arrow-down"/>
     </div>
     <transition name="trainsition-drop">
-      <div class="select-dropdown" v-show="visible">
-        <ul v-if="!selectOptions.length && querying" class="select-not-found">
+      <div :class="`${prefixCls}-dropdown`" :style="dropStyle" v-show="visible">
+        <ul v-if="!selectOptions.length && querying" :class="`${prefixCls}-not-found`">
           <li>无匹配数据</li>
         </ul>
-        <ul v-else class="select-dropdown-list">
+        <ul v-else :class="`${prefixCls}-dropdown-list`">
           <functional-options
             :options="selectOptions"
             :slot-update-hook="updateSlotOptions"
             :slot-options="slotOptions"
           ></functional-options>
-          <li key="more" class="select-item" v-show="limitRange < slotOptions.length && !querying" @click="loadMore">加载更多<Icon type="ios-more" size="20"/></li>
+          <li
+            key="more"
+            :class="`${prefixCls}-item`"
+            v-show="limitRange < slotOptions.length && !querying"
+            @click="loadMore">加载更多<Icon type="ios-more" size="20"/>
+          </li>
         </ul>
       </div>
     </transition>
@@ -41,9 +77,9 @@
 <script>
 import {directive as clickOutside} from 'v-click-outside-x';
 import FunctionalOptions from './functional-options';
-// import { debounce } from '@/assets/utils';
+import { getStyle } from './utils';
 
-const prefixCls = 'rose-select';
+const prefixCls = 'octet-select';
 const limitDft = 10;
 
 const getNestedProperty = (obj, path) => {
@@ -58,7 +94,7 @@ const getOptionLabel = option => {
   return textContent || (typeof innerHTML === 'string' ? innerHTML : '');
 };
 export default {
-  name: 'roseSelect',
+  name: 'ocSelect',
   directives: { clickOutside },
   components: { FunctionalOptions },
   props: {
@@ -100,8 +136,12 @@ export default {
       prefixCls: prefixCls,
       slotOptions: this.$slots.default,
       query: '',
+      values: [],
+      multipleList: [],
       selectedLabel: '',
-      limitRange: 1 * limitDft
+      dropStyle: { top: '32px' },
+      inputLength: 20,
+      limitRange: 1 * this.limit
     }
   },
   computed: {
@@ -111,7 +151,8 @@ export default {
         {
           [`${prefixCls}-focus`]: this.isFocused,
           [`${prefixCls}-visible`]: this.visible,
-          [`${prefixCls}-disabled`]: this.disabled
+          [`${prefixCls}-disabled`]: this.disabled,
+          [`${prefixCls}-multiple`]: this.multiple
         }
       ]
     },
@@ -119,9 +160,6 @@ export default {
       const { query, selectedLabel } = this;
       let options;
       if (query === selectedLabel || !query) {
-        // const index = this.findOptionIndex(this.value);
-        // let range = this.limitRange;
-        // while(index >= range) { range = range + limitDft; }
         options = this.slotOptions.slice(0, this.limitRange - 1);
       } else {
         options = this.findOptions(query);
@@ -129,47 +167,99 @@ export default {
       return options.map(option => this.processOption(option, this.value));
     },
     canBeCleared() {
-      return this.clearable && this.query && this.hasMouseHoverHead;
-    }
+      return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple;
+    },
+    inputStyle() {
+      let style = {};
+      if (this.multiple) {
+        if (this.values[0]===undefined) {
+          style = {
+            width: '100%',
+            transition: 'width ease-out',
+            transitionDelay: '.5s'
+          }
+        } else {
+          style.width = `${this.inputLength}px`;
+        }
+      }
+      return style;
+    },
   },
   watch: {
     query(val) {
       if (val === this.selectedLabel || !val) {
         this.querying = false;
+        this.inputLength = 20;
       } else {
+        const fontSize = getStyle(this.$refs['selection'], 'fontSize');
+        this.inputLength = val.length * parseInt(fontSize) + 20;
         this.visible = true;
         this.querying = true;
       }
+      this.refreshDropTop();
+    },
+    values() {
+      this.refreshDropTop();
     }
   },
   mounted() {
-    const { value } = this;
+    let { value, multiple } = this;
     this.$on('on-select-selected', this.onOptionClick);
     if (value!==null && value!==undefined) {
-      const { label } = this.getOptionData(value)||{};
-      this.query = label;
-      this.selectedLabel = label;
+      if (multiple) {
+        if (typeof value === 'string') value = [value];
+        this.values = value.map(item => {
+          const { label } = this.getOptionData(item)||{};
+          return {
+            value: item,
+            label: label
+          }
+        })
+      } else {
+        const { label } = this.getOptionData(value)||{};
+        this.query = label;
+        this.selectedLabel = label;
+      }
     }
   },
   methods: {
-    toggleFocus() {
-
+    refreshDropTop() {
+      this.$nextTick(() => {
+        const selectionHeight =  getStyle(this.$refs['selection'], 'height');
+        const currentTop = this.dropStyle.top;
+        if (selectionHeight !== currentTop) {
+          this.dropStyle.top = selectionHeight;
+        }
+      })
     },
     onInputClick() {
       if (this.disabled) return;
+      if (this.multiple && this.filterable) {
+        this.$refs.input.focus();
+      }
       this.isFocused = true;
       this.visible = !this.visible;
     },
     onOptionClick({value, label}) {
-      console.log(label)
-      this.query = label;
-      this.selectedLabel = label;
-      this.visible = false;
-      this.$emit('input', value);
+      if (this.multiple) {
+        const valueIndex = this.values.findIndex(item => item.value === value);
+        if (~valueIndex) {
+          this.values.splice(valueIndex, 1);
+        } else {
+          this.values.push({value, label});
+        }
+        this.query = '';
+        const newValue = this.values.map(item => item.value);
+        this.$emit('input', newValue);
+      } else {
+        this.query = label;
+        this.selectedLabel = label;
+        this.visible = false;
+        this.$emit('input', value);
+      }
     },
     onClickOutside(evt) {
       if (this.visible) {
-        console.log(evt.type);
         if (evt.type === 'mousedown') {
           evt.preventDefault();
           return;
@@ -184,12 +274,18 @@ export default {
         this.query = this.selectedLabel
       }
     },
+    removeTag(index) {
+      if (!this.disabled && !this.query) {
+        this.values.splice(index, 1);
+        const newValue = this.values.map(item => item.value) || [];
+        this.$emit('input', newValue);
+      }
+    },
     updateSlotOptions() {
       this.slotOptions = this.$slots.default;
     },
     loadMore() {
-      this.limitRange = this.limitRange + limitDft;
-      console.log(this.limitRange);
+      this.limitRange = this.limitRange + this.limit;
     },
     clearSelect() {
       this.query = '';
@@ -221,7 +317,12 @@ export default {
     processOption(option, value){
       if (!option.componentOptions) return option;
       const optionValue = option.componentOptions.propsData.value;
-      const selected = value === optionValue;
+      let selected;
+      if (this.multiple) {
+        selected = value.includes(optionValue);
+      } else {
+        selected = value === optionValue
+      }
       const propsData = {
         ...option.componentOptions.propsData,
         selected: selected
@@ -237,169 +338,3 @@ export default {
   }
 }
 </script>
-<style lang="scss">
-.rose-select {
-  position: relative;
-  &.rose-select-visible {
-    .select-selection {
-      border-color: #57a3f3;
-      outline: 0;
-      box-shadow: 0 0 0 2px rgba(45,140,240,.2);
-      .select-arrow {
-        transform: rotate(180deg);
-      }
-    }
-  }
-  &.rose-select-focus {
-    .select-selection {
-      border-color: #57a3f3;
-    }
-  }
-  &.rose-select-disabled {
-    .select-selection {
-      background-color: #f3f3f3;
-      opacity: 1;
-      cursor: not-allowed;
-      color: #ccc;
-      &:hover {
-        border-color: unset;
-      }
-      .select-input {
-        cursor: not-allowed;
-      }
-    }
-  }
-}
-.select-selection {
-  display: block;
-  box-sizing: border-box;
-  outline: 0;
-  -webkit-user-select: none;
-  cursor: pointer;
-  position: relative;
-  background-color: #fff;
-  border-radius: 4px;
-  border: 1px solid #dcdee2;
-  padding: 0 24px 0 8px;
-  transition: all .2s ease-in-out;
-  &:hover {
-    border-color: #57a3f3;
-  }
-  .select-input {
-    width: 100%;
-    display: inline-block;
-    height: 32px;
-    line-height: 32px;
-    font-size: 12px;
-    outline: 0;
-    border: none;
-    box-sizing: border-box;
-    color: #515a6e;
-    background-color: transparent;
-    position: relative;
-    cursor: pointer;
-  }
-  .select-arrow {
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    line-height: 1;
-    margin-top: -7px;
-    font-size: 14px;
-    color: #808695;
-    transition: all .2s ease-in-out;
-  }
-}
-.select-dropdown {
-  width: 100%;
-  position: absolute;
-  will-change: top, left;
-  transform-origin: center top 0px;
-  top: 32px;
-  left: 0px;
-  max-height: 200px;
-  overflow: auto;
-  margin: 5px 0;
-  padding: 5px 0;
-  background-color: #fff;
-  box-sizing: border-box;
-  border-radius: 4px;
-  box-shadow: 0 1px 6px rgba(0,0,0,.2);
-  z-index: 900;
-  .select-dropdown-list {
-    list-style: none;
-    .select-item {
-      margin: 0;
-      line-height: normal;
-      padding: 7px 16px;
-      clear: both;
-      color: #515a6e;
-      font-size: 12px!important;
-      white-space: nowrap;
-      list-style: none;
-      cursor: pointer;
-      transition: background .2s ease-in-out;
-      &:hover {
-        background: #f3f3f3;
-      }
-    }
-    .select-item-selected {
-      color: #2d8cf0;
-      background: #f3f3f3;
-    }
-    .select-item-disabled {
-      color: #c5c8ce;
-      cursor: not-allowed;
-    }
-  }
-  .select-not-found {
-    text-align: center;
-    font-size: 14px;
-    color: #c5c8ce;
-  }
-}
-
-.list-enter-active, .list-leave-active {
-  transition: all 1s;
-}
-.list-enter, .list-leave-to {
-  opacity: 0.5;
-  transform: scale(0.5);
-}
-
-.trainsition-drop-enter-active, .trainsition-drop-appear {
-  opacity: 0;
-  animation-timing-function: ease-in-out;
-  animation-name: transitionDropIn;
-  animation-duration: .3s;
-  animation-fill-mode: both;
-}
-.trainsition-drop-leave-active {
-  animation-name: transitionDropOut;
-  animation-duration: .3s;
-  animation-fill-mode: both;
-  animation-timing-function: ease-in-out;
-}
-
-@keyframes transitionDropIn {
-  0% {
-    opacity: 0;
-    transform: scaleY(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
-
-@keyframes transitionDropOut {
-  0% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scaleY(0.8);
-  }
-}
-</style>

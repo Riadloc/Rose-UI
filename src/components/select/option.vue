@@ -7,8 +7,9 @@
   </li>
 </template>
 <script>
-import Emitter from '@/mixins/emitter'
+import Emitter from './emitter'
 export default {
+  name: 'ocOption',
   mixins: [ Emitter ],
   props: {
     value: {
@@ -32,7 +33,7 @@ export default {
   },
   computed: {
     classes() {
-      const prefixCls = 'select-item';
+      const prefixCls = 'octet-select-item';
       return [
         `${prefixCls}`,
         {
@@ -51,11 +52,7 @@ export default {
   methods: {
     select() {
       if (this.disabled) return;
-      console.log({
-        value: this.value,
-        label: this.optionLabel,
-      })
-      this.dispatch('roseSelect', 'on-select-selected', {
+      this.dispatch('ocSelect', 'on-select-selected', {
         value: this.value,
         label: this.optionLabel,
       });
