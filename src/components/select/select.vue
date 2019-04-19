@@ -52,13 +52,15 @@
         type="ios-arrow-down"/>
     </div>
     <OptionHead
-      :show-not-found-text="!selectOptions.length"
       :drawer="drawer"
       :drawer-options="drawerOptions"
       :visible.sync="visible"
       :multiple="multiple"
       :drop-style="dropStyle"
       :prefix-cls="prefixCls">
+      <ul v-show="!selectOptions.length" :class="`${prefixCls}-not-found`">
+        <li>无匹配数据</li>
+      </ul>
       <ul>
         <functional-options
           :options="selectOptions"

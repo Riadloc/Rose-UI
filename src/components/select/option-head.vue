@@ -1,12 +1,9 @@
 <template>
-  <Drawer :transfer="false" :closable="false" :width="options.width" :placement="options.placement" :value="visible" v-if="drawer">
+  <Drawer :transfer="false" :closable="false" :width="options.width" :placement="options.placement" :value="visible" @on-close="onDrawerClose" v-if="drawer">
     <slot></slot>
   </Drawer>
   <transition name="trainsition-drop" v-else>
     <div :class="`${prefixCls}-dropdown`" :style="dropStyle" v-show="visible">
-      <ul v-show="showNotFoundText" :class="`${prefixCls}-not-found`">
-        <li>无匹配数据</li>
-      </ul>
       <slot></slot>
     </div>
   </transition>
@@ -51,6 +48,11 @@ export default {
         placement: 'right'
       }
       return Object.assign(defaultOpts, this.drawerOptions)
+    }
+  },
+  methods: {
+    onDrawerClose() {
+      this.$emit('update:visible', false)
     }
   }
 }
