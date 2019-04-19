@@ -11,17 +11,15 @@
       @mouseenter="hasMouseHoverHead = true"
       @mouseleave="hasMouseHoverHead = false">
       <div v-if="multiple">
-        <Tag
-          :class="`${prefixCls}-tag`"
-          v-for="(item, index) in values"
-          :key="item.value"
-          closable
-          @on-close="removeTag(index)">{{ item.label }}
-        </Tag>
+        <div :class="['ivu-tag','ivu-tag-checked',`${prefixCls}-tag`]" v-for="(item, index) in values" :key="item.value">
+          <span class="ivu-tag-text">{{ item.label }}</span>
+          <Icon type="ios-close" @click.native.stop="removeTag(index)"></Icon>
+        </div>
         <input
-          v-if="filterable || !values.length"
+          v-if="filterable"
           @keydown.delete="removeTag(values.length-1)"
-          ref="input" :style="inputStyle"
+          ref="input"
+          :style="inputStyle"
           v-model="query"
           :class="`${prefixCls}-input`"
           :readonly="!filterable"
@@ -30,6 +28,7 @@
           type="text"
           :placeholder="values.length?'':placeholder"
         />
+        <span v-else-if="!values.length" :class="`${prefixCls}-placeholder`">{{placeholder}}</span>
       </div>
       <div v-else>
         <input
@@ -52,35 +51,39 @@
         :class="`${prefixCls}-arrow`"
         type="ios-arrow-down"/>
     </div>
-    <transition name="trainsition-drop">
-      <div :class="`${prefixCls}-dropdown`" :style="dropStyle" v-show="visible">
-        <ul v-if="!selectOptions.length && querying" :class="`${prefixCls}-not-found`">
-          <li>无匹配数据</li>
-        </ul>
-        <ul v-else :class="`${prefixCls}-dropdown-list`">
-          <functional-options
-            :options="selectOptions"
-            :slot-update-hook="updateSlotOptions"
-            :slot-options="slotOptions"
-          ></functional-options>
-          <li
-            key="more"
-            :class="`${prefixCls}-item`"
-            v-show="limitRange < slotOptions.length && !querying"
-            @click="loadMore">加载更多<Icon type="ios-more" size="20"/>
-          </li>
-        </ul>
-      </div>
-    </transition>
+    <OptionHead
+      :show-not-found-text="!selectOptions.length"
+      :drawer="drawer"
+      :drawer-options="drawerOptions"
+      :visible.sync="visible"
+      :multiple="multiple"
+      :drop-style="dropStyle"
+      :prefix-cls="prefixCls">
+      <ul>
+        <functional-options
+          :options="selectOptions"
+          :slot-update-hook="updateSlotOptions"
+          :slot-options="slotOptions"
+        ></functional-options>
+        <li
+          key="more"
+          :class="`${prefixCls}-item`"
+          v-show="limitRange < (slotOptions||[]).length && !querying"
+          @click="loadMore">加载更多选项<Icon type="ios-arrow-down" />
+        </li>
+      </ul>
+    </OptionHead>
   </div>
 </template>
 <script>
 import {directive as clickOutside} from 'v-click-outside-x';
 import FunctionalOptions from './functional-options';
+import OptionHead from './option-head';
+import Emitter from './emitter'
 import { getStyle } from './utils';
 
 const prefixCls = 'octet-select';
-const limitDft = 10;
+const limitDft = 50;
 
 const getNestedProperty = (obj, path) => {
   const keys = path.split('.');
@@ -96,7 +99,8 @@ const getOptionLabel = option => {
 export default {
   name: 'ocSelect',
   directives: { clickOutside },
-  components: { FunctionalOptions },
+  components: { FunctionalOptions, OptionHead },
+  mixins: [ Emitter ],
   props: {
     value: {
       type: [String, Number, Array],
@@ -121,6 +125,19 @@ export default {
     filterable: {
       type: Boolean,
       default: false
+    },
+    drawer: {
+      type: Boolean,
+      default: false
+    },
+    drawerOptions: {
+      type: Object
+    },
+    size: {
+      validator (value) {
+        return ['small', 'large', 'default'].includes(value);
+      },
+      default: 'default'
     },
     limit: {
       type: Number,
@@ -152,7 +169,8 @@ export default {
           [`${prefixCls}-focus`]: this.isFocused,
           [`${prefixCls}-visible`]: this.visible,
           [`${prefixCls}-disabled`]: this.disabled,
-          [`${prefixCls}-multiple`]: this.multiple
+          [`${prefixCls}-multiple`]: this.multiple,
+          [`${prefixCls}-${this.size}`]: !!this.size,
         }
       ]
     },
@@ -160,32 +178,33 @@ export default {
       const { query, selectedLabel } = this;
       let options;
       if (query === selectedLabel || !query) {
-        options = this.slotOptions.slice(0, this.limitRange - 1);
+        options = (this.slotOptions||[]).slice(0, this.limitRange - 1);
       } else {
         options = this.findOptions(query);
       }
       return options.map(option => this.processOption(option, this.value));
     },
     canBeCleared() {
-      return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple;
+      return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple && !this.disabled;
     },
     inputStyle() {
       let style = {};
-      if (this.multiple) {
-        if (this.values[0]===undefined) {
-          style = {
-            width: '100%',
-            transition: 'width ease-out',
-            transitionDelay: '.5s'
-          }
-        } else {
-          style.width = `${this.inputLength}px`;
-        }
+      if (this.multiple && this.values[0]!==undefined) {
+        style.width = `${this.inputLength}px`;
       }
       return style;
     },
   },
   watch: {
+    value(val) {
+      const newValue = JSON.stringify(val);
+      const curValues = JSON.stringify(this.values.map(({value}) => value));
+      const shouldMapping = newValue !== curValues;
+      if (shouldMapping) {
+        this.mapInitValue(val);
+        this.dispatch('FormItem', 'on-form-change', val);
+      }
+    },
     query(val) {
       if (val === this.selectedLabel || !val) {
         this.querying = false;
@@ -196,31 +215,30 @@ export default {
         this.visible = true;
         this.querying = true;
       }
+      this.$emit('on-query-change', val);
       this.refreshDropTop();
     },
-    values() {
+    values(val) {
       this.refreshDropTop();
+      
+      const newValue = val.map(({value}) => value);
+      const shouldEmit = JSON.stringify(newValue) !== JSON.stringify(this.value);
+      if (shouldEmit) {
+        this.$emit('on-change', newValue);
+        this.$emit('input', newValue);
+        this.dispatch('FormItem', 'on-form-change', newValue);
+      }
+    },
+    visible(val) {
+      this.$emit('on-open-change', val);
+    },
+    slotOptions() {
+      this.mapInitValue(this.value);
     }
   },
   mounted() {
-    let { value, multiple } = this;
     this.$on('on-select-selected', this.onOptionClick);
-    if (value!==null && value!==undefined) {
-      if (multiple) {
-        if (typeof value === 'string') value = [value];
-        this.values = value.map(item => {
-          const { label } = this.getOptionData(item)||{};
-          return {
-            value: item,
-            label: label
-          }
-        })
-      } else {
-        const { label } = this.getOptionData(value)||{};
-        this.query = label;
-        this.selectedLabel = label;
-      }
-    }
+    this.mapInitValue(this.value);
   },
   methods: {
     refreshDropTop() {
@@ -231,6 +249,24 @@ export default {
           this.dropStyle.top = selectionHeight;
         }
       })
+    },
+    mapInitValue(value) {
+      if (value!==null && value!==undefined) {
+        if (this.multiple) {
+          if (typeof value === 'string') value = [value].filter(Boolean);
+          this.values = value.map(item => {
+            const { label } = this.getOptionData(item)||{};
+            return {
+              value: item,
+              label: label
+            }
+          })
+        } else {
+          const { label } = this.getOptionData(value)||{};
+          this.query = label;
+          this.selectedLabel = label;
+        }
+      }
     },
     onInputClick() {
       if (this.disabled) return;
@@ -249,13 +285,12 @@ export default {
           this.values.push({value, label});
         }
         this.query = '';
-        const newValue = this.values.map(item => item.value);
-        this.$emit('input', newValue);
       } else {
         this.query = label;
         this.selectedLabel = label;
         this.visible = false;
         this.$emit('input', value);
+        this.$emit('on-change', value);
       }
     },
     onClickOutside(evt) {
@@ -277,8 +312,6 @@ export default {
     removeTag(index) {
       if (!this.disabled && !this.query) {
         this.values.splice(index, 1);
-        const newValue = this.values.map(item => item.value) || [];
-        this.$emit('input', newValue);
       }
     },
     updateSlotOptions() {
@@ -291,9 +324,10 @@ export default {
       this.query = '';
       this.selectedLabel = '';
       this.$emit('input', '');
+      this.$emit('on-clear');
     },
     getOptionData(value){
-      const option = this.slotOptions.find(({componentOptions}) => componentOptions.propsData.value === value);
+      const option = this.slotOptions && this.slotOptions.find(({componentOptions}) => componentOptions.propsData.value === value);
       if (!option) return null;
       const label = getOptionLabel(option);
       return {
@@ -303,14 +337,14 @@ export default {
     },
     findOptions(query) {
       query = (query||'').trim();
-      const options = this.slotOptions.filter(option => {
+      const options = (this.slotOptions||[]).filter(option => {
         const label = getOptionLabel(option);
         return ~label.indexOf(query);
       })
       return options;
     },
     findOptionIndex(value) {
-      return this.slotOptions.findIndex(option => {
+      return (this.slotOptions||[]).findIndex(option => {
         option.componentOptions.propsData.value === value
       });
     },

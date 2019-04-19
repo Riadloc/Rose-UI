@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="content">
-      <oc-select v-model="user" multiple style="width: 600px;">
+      <oc-select drawer v-model="user" multiple filterable style="width: 600px;">
         <oc-option v-for="(item,index) in user_list" :key="index" :value="item.core_user_id">{{item.display_name}}</oc-option>
       </oc-select>
     </div>
@@ -20,6 +20,11 @@ export default {
     return {
       user: ['1'],
       user_list: user
+    }
+  },
+  methods: {
+    update() {
+      this.user.push('3');
     }
   }
 }
