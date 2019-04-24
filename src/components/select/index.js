@@ -7,13 +7,13 @@
  * 无OptionGroup
  */
 
-//stylesheet
-import "./select.scss";
+// stylesheet
+import '../styles/select.scss'
 
-//components
-import ocSelect from './select';
-import ocOption from './option';
+// components
+import ocSelect from './select'
+import ocOption from './option'
 
 export { ocSelect, ocOption }
 
-export default ocSelect;
+export default ocSelect

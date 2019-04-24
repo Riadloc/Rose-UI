@@ -1,5 +1,6 @@
 <template>
-  <li :class="classes"
+  <li
+    :class="classes"
     @click.stop="select"
     @mousedown.prevent
   >
@@ -9,7 +10,7 @@
 <script>
 import Emitter from './emitter'
 export default {
-  name: 'ocOption',
+  name: 'OcOption',
   mixins: [ Emitter ],
   props: {
     value: {
@@ -32,31 +33,31 @@ export default {
     }
   },
   computed: {
-    classes() {
-      const prefixCls = 'octet-select-item';
+    classes () {
+      const prefixCls = 'octet-select-item'
       return [
         `${prefixCls}`,
         {
           [`${prefixCls}-selected`]: this.selected,
-          [`${prefixCls}-disabled`]: this.disabled,
+          [`${prefixCls}-disabled`]: this.disabled
         }
       ]
     },
-    showLabel() {
-      return this.label || this.value;
+    showLabel () {
+      return this.label || this.value
     },
-    optionLabel(){
-      return this.label || (this.$el && this.$el.textContent);
+    optionLabel () {
+      return this.label || (this.$el && this.$el.textContent)
     }
   },
   methods: {
-    select() {
-      if (this.disabled) return;
+    select () {
+      if (this.disabled) return
       this.dispatch('ocSelect', 'on-select-selected', {
         value: this.value,
-        label: this.optionLabel,
-      });
+        label: this.optionLabel
+      })
     }
-  },
+  }
 }
 </script>

@@ -1,34 +1,46 @@
 <template>
   <div
-  :class="classes"
-  v-click-outside.capture="onClickOutside"
-  v-click-outside:mousedown.capture="onClickOutside"
+    v-click-outside.capture="onClickOutside"
+    v-click-outside:mousedown.capture="onClickOutside"
+    :class="classes"
   >
     <div
       ref="selection"
       :class="`${prefixCls}-selection`"
       @click="onInputClick"
       @mouseenter="hasMouseHoverHead = true"
-      @mouseleave="hasMouseHoverHead = false">
+      @mouseleave="hasMouseHoverHead = false"
+    >
       <div v-if="multiple">
-        <div :class="['ivu-tag','ivu-tag-checked',`${prefixCls}-tag`]" v-for="(item, index) in values" :key="item.value">
+        <div
+          v-for="(item, index) in values"
+          :key="item.value"
+          style="display: inline-block;"
+          :class="['ivu-tag','ivu-tag-checked',`${prefixCls}-tag`]"
+        >
           <span class="ivu-tag-text">{{ item.label }}</span>
-          <Icon type="ios-close" @click.native.stop="removeTag(index)"></Icon>
+          <Icon
+            type="ios-close"
+            @click.native.stop="removeTag(index)"
+          ></Icon>
         </div>
         <input
           v-if="filterable"
-          @keydown.delete="removeTag(values.length-1)"
           ref="input"
-          :style="inputStyle"
           v-model="query"
+          :style="inputStyle"
           :class="`${prefixCls}-input`"
           :readonly="!filterable"
           autocomplete="false"
           spellcheck="false"
           type="text"
+          @keydown.delete="removeTag(values.length-1)"
           :placeholder="values.length?'':placeholder"
         />
-        <span v-else-if="!values.length" :class="`${prefixCls}-placeholder`">{{placeholder}}</span>
+        <span
+          v-else-if="!values.length"
+          :class="`${prefixCls}-placeholder`"
+        >{{ placeholder }}</span>
       </div>
       <div v-else>
         <input
@@ -45,11 +57,13 @@
         v-if="canBeCleared"
         :class="`${prefixCls}-arrow`"
         type="ios-close-circle"
-        @click.native.stop="clearSelect"/>
+        @click.native.stop="clearSelect"
+      />
       <Icon
         v-else
         :class="`${prefixCls}-arrow`"
-        type="ios-arrow-down"/>
+        type="ios-arrow-down"
+      />
     </div>
     <OptionHead
       :drawer="drawer"
@@ -57,8 +71,12 @@
       :visible.sync="visible"
       :multiple="multiple"
       :drop-style="dropStyle"
-      :prefix-cls="prefixCls">
-      <ul v-show="!selectOptions.length" :class="`${prefixCls}-not-found`">
+      :prefix-cls="prefixCls"
+    >
+      <ul
+        v-show="!selectOptions.length"
+        :class="`${prefixCls}-not-found`"
+      >
         <li>无匹配数据</li>
       </ul>
       <ul>
@@ -68,38 +86,40 @@
           :slot-options="slotOptions"
         ></functional-options>
         <li
+          v-show="limitRange < (slotOptions||[]).length && !querying"
           key="more"
           :class="`${prefixCls}-item`"
-          v-show="limitRange < (slotOptions||[]).length && !querying"
-          @click="loadMore">加载更多选项<Icon type="ios-arrow-down" />
+          @click="loadMore"
+        >
+          加载更多选项<Icon type="ios-arrow-down" />
         </li>
       </ul>
     </OptionHead>
   </div>
 </template>
 <script>
-import {directive as clickOutside} from 'v-click-outside-x';
-import FunctionalOptions from './functional-options';
-import OptionHead from './option-head';
+import { directive as clickOutside } from 'v-click-outside-x'
+import FunctionalOptions from './functional-options'
+import OptionHead from './option-head'
 import Emitter from './emitter'
-import { getStyle } from './utils';
+import { getStyle } from './utils'
 
-const prefixCls = 'octet-select';
-const limitDft = 50;
+const prefixCls = 'octet-select'
+const limitDft = 50
 
 const getNestedProperty = (obj, path) => {
-  const keys = path.split('.');
-  return keys.reduce((o, key) => o && o[key] || null, obj);
-};
+  const keys = path.split('.')
+  return keys.reduce((o, key) => (o && o[key]) || null, obj)
+}
 
 const getOptionLabel = option => {
-  if (option.componentOptions.propsData.label) return option.componentOptions.propsData.label;
-  const textContent = (option.componentOptions.children || []).reduce((str, child) => str + (child.text || ''), '');
-  const innerHTML = getNestedProperty(option, 'data.domProps.innerHTML');
-  return textContent || (typeof innerHTML === 'string' ? innerHTML : '');
-};
+  if (option.componentOptions.propsData.label) return option.componentOptions.propsData.label
+  const textContent = (option.componentOptions.children || []).reduce((str, child) => str + (child.text || ''), '')
+  const innerHTML = getNestedProperty(option, 'data.domProps.innerHTML')
+  return textContent || (typeof innerHTML === 'string' ? innerHTML : '')
+}
 export default {
-  name: 'ocSelect',
+  name: 'OcSelect',
   directives: { clickOutside },
   components: { FunctionalOptions, OptionHead },
   mixins: [ Emitter ],
@@ -137,7 +157,7 @@ export default {
     },
     size: {
       validator (value) {
-        return ['small', 'large', 'default'].includes(value);
+        return ['small', 'large', 'default'].includes(value)
       },
       default: 'default'
     },
@@ -146,7 +166,7 @@ export default {
       default: limitDft
     }
   },
-  data() {
+  data () {
     return {
       isFocused: false,
       visible: false,
@@ -164,7 +184,7 @@ export default {
     }
   },
   computed: {
-    classes() {
+    classes () {
       return [
         `${prefixCls}`,
         {
@@ -172,190 +192,190 @@ export default {
           [`${prefixCls}-visible`]: this.visible,
           [`${prefixCls}-disabled`]: this.disabled,
           [`${prefixCls}-multiple`]: this.multiple,
-          [`${prefixCls}-${this.size}`]: !!this.size,
+          [`${prefixCls}-${this.size}`]: !!this.size
         }
       ]
     },
-    selectOptions() {
-      const { query, selectedLabel } = this;
-      let options;
+    selectOptions () {
+      const { query, selectedLabel } = this
+      let options
       if (query === selectedLabel || !query) {
-        options = (this.slotOptions||[]).slice(0, this.limitRange - 1);
+        options = (this.slotOptions || []).slice(0, this.limitRange - 1)
       } else {
-        options = this.findOptions(query);
+        options = this.findOptions(query)
       }
-      return options.map(option => this.processOption(option, this.value));
+      return options.map(option => this.processOption(option, this.value))
     },
-    canBeCleared() {
-      return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple && !this.disabled;
+    canBeCleared () {
+      return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple && !this.disabled
     },
-    inputStyle() {
-      let style = {};
-      if (this.multiple && this.values[0]!==undefined) {
-        style.width = `${this.inputLength}px`;
+    inputStyle () {
+      let style = {}
+      if (this.multiple && this.values[0] !== undefined) {
+        style.width = `${this.inputLength}px`
       }
-      return style;
-    },
-  },
-  watch: {
-    value(val) {
-      const newValue = JSON.stringify(val);
-      const curValues = JSON.stringify(this.values.map(({value}) => value));
-      const shouldMapping = newValue !== curValues;
-      if (shouldMapping) {
-        this.mapInitValue(val);
-        this.dispatch('FormItem', 'on-form-change', val);
-      }
-    },
-    query(val) {
-      if (val === this.selectedLabel || !val) {
-        this.querying = false;
-        this.inputLength = 20;
-      } else {
-        const fontSize = getStyle(this.$refs['selection'], 'fontSize');
-        this.inputLength = val.length * parseInt(fontSize) + 20;
-        this.visible = true;
-        this.querying = true;
-      }
-      this.$emit('on-query-change', val);
-      this.refreshDropTop();
-    },
-    values(val) {
-      this.refreshDropTop();
-      
-      const newValue = val.map(({value}) => value);
-      const shouldEmit = JSON.stringify(newValue) !== JSON.stringify(this.value);
-      if (shouldEmit) {
-        this.$emit('on-change', newValue);
-        this.$emit('input', newValue);
-        this.dispatch('FormItem', 'on-form-change', newValue);
-      }
-    },
-    visible(val) {
-      this.$emit('on-open-change', val);
-    },
-    slotOptions() {
-      this.mapInitValue(this.value);
+      return style
     }
   },
-  mounted() {
-    this.$on('on-select-selected', this.onOptionClick);
-    this.mapInitValue(this.value);
+  watch: {
+    value (val) {
+      const newValue = JSON.stringify(val)
+      const curValues = JSON.stringify(this.values.map(({ value }) => value))
+      const shouldMapping = newValue !== curValues
+      if (shouldMapping) {
+        this.mapInitValue(val)
+        this.dispatch('FormItem', 'on-form-change', val)
+      }
+    },
+    query (val) {
+      if (val === this.selectedLabel || !val) {
+        this.querying = false
+        this.inputLength = 20
+      } else {
+        const fontSize = getStyle(this.$refs['selection'], 'fontSize')
+        this.inputLength = val.length * parseInt(fontSize) + 20
+        this.visible = true
+        this.querying = true
+      }
+      this.$emit('on-query-change', val)
+      this.refreshDropTop()
+    },
+    values (val) {
+      this.refreshDropTop()
+
+      const newValue = val.map(({ value }) => value)
+      const shouldEmit = JSON.stringify(newValue) !== JSON.stringify(this.value)
+      if (shouldEmit) {
+        this.$emit('on-change', newValue)
+        this.$emit('input', newValue)
+        this.dispatch('FormItem', 'on-form-change', newValue)
+      }
+    },
+    visible (val) {
+      this.$emit('on-open-change', val)
+    },
+    slotOptions () {
+      this.mapInitValue(this.value)
+    }
+  },
+  mounted () {
+    this.$on('on-select-selected', this.onOptionClick)
+    this.mapInitValue(this.value)
   },
   methods: {
-    refreshDropTop() {
+    refreshDropTop () {
       this.$nextTick(() => {
-        const selectionHeight =  getStyle(this.$refs['selection'], 'height');
-        const currentTop = this.dropStyle.top;
+        const selectionHeight = getStyle(this.$refs['selection'], 'height')
+        const currentTop = this.dropStyle.top
         if (selectionHeight !== currentTop) {
-          this.dropStyle.top = selectionHeight;
+          this.dropStyle.top = selectionHeight
         }
       })
     },
-    mapInitValue(value) {
-      if (value!==null && value!==undefined) {
+    mapInitValue (value) {
+      if (value !== null && value !== undefined) {
         if (this.multiple) {
-          if (typeof value === 'string') value = [value].filter(Boolean);
+          if (typeof value === 'string') value = [value].filter(Boolean)
           this.values = value.map(item => {
-            const { label } = this.getOptionData(item)||{};
+            const { label } = this.getOptionData(item) || {}
             return {
               value: item,
               label: label
             }
           })
         } else {
-          const { label } = this.getOptionData(value)||{};
-          this.query = label;
-          this.selectedLabel = label;
+          const { label } = this.getOptionData(value) || {}
+          this.query = label
+          this.selectedLabel = label
         }
       }
     },
-    onInputClick() {
-      if (this.disabled) return;
+    onInputClick () {
+      if (this.disabled) return
       if (this.multiple && this.filterable) {
-        this.$refs.input.focus();
+        this.$refs.input.focus()
       }
-      this.isFocused = true;
-      this.visible = !this.visible;
+      this.isFocused = true
+      this.visible = !this.visible
     },
-    onOptionClick({value, label}) {
+    onOptionClick ({ value, label }) {
       if (this.multiple) {
-        const valueIndex = this.values.findIndex(item => item.value === value);
+        const valueIndex = this.values.findIndex(item => item.value === value)
         if (~valueIndex) {
-          this.values.splice(valueIndex, 1);
+          this.values.splice(valueIndex, 1)
         } else {
-          this.values.push({value, label});
+          this.values.push({ value, label })
         }
-        this.query = '';
+        this.query = ''
       } else {
-        this.query = label;
-        this.selectedLabel = label;
-        this.visible = false;
-        this.$emit('input', value);
-        this.$emit('on-change', value);
+        this.query = label
+        this.selectedLabel = label
+        this.visible = false
+        this.$emit('input', value)
+        this.$emit('on-change', value)
       }
     },
-    onClickOutside(evt) {
+    onClickOutside (evt) {
       if (this.visible) {
         if (evt.type === 'mousedown') {
-          evt.preventDefault();
-          return;
+          evt.preventDefault()
+          return
         }
-        evt.preventDefault();
-        this.isFocused = true;
-        this.visible = false;
+        evt.preventDefault()
+        this.isFocused = true
+        this.visible = false
       } else {
-        this.isFocused = false;
+        this.isFocused = false
       }
       if (this.query !== this.selectedLabel) {
         this.query = this.selectedLabel
       }
     },
-    removeTag(index) {
+    removeTag (index) {
       if (!this.disabled && !this.query) {
-        this.values.splice(index, 1);
+        this.values.splice(index, 1)
       }
     },
-    updateSlotOptions() {
-      this.slotOptions = this.$slots.default;
+    updateSlotOptions () {
+      this.slotOptions = this.$slots.default
     },
-    loadMore() {
-      this.limitRange = this.limitRange + this.limit;
+    loadMore () {
+      this.limitRange = this.limitRange + this.limit
     },
-    clearSelect() {
-      this.query = '';
-      this.selectedLabel = '';
-      this.$emit('input', '');
-      this.$emit('on-clear');
+    clearSelect () {
+      this.query = ''
+      this.selectedLabel = ''
+      this.$emit('input', '')
+      this.$emit('on-clear')
     },
-    getOptionData(value){
-      const option = this.slotOptions && this.slotOptions.find(({componentOptions}) => componentOptions.propsData.value === value);
-      if (!option) return null;
-      const label = getOptionLabel(option);
+    getOptionData (value) {
+      const option = this.slotOptions && this.slotOptions.find(({ componentOptions }) => componentOptions.propsData.value === value)
+      if (!option) return null
+      const label = getOptionLabel(option)
       return {
-          value: value,
-          label: label,
-      };
+        value: value,
+        label: label
+      }
     },
-    findOptions(query) {
-      query = (query||'').trim();
-      const options = (this.slotOptions||[]).filter(option => {
-        const label = getOptionLabel(option);
-        return ~label.indexOf(query);
+    findOptions (query) {
+      query = (query || '').trim()
+      const options = (this.slotOptions || []).filter(option => {
+        const label = getOptionLabel(option)
+        return ~label.indexOf(query)
       })
-      return options;
+      return options
     },
-    findOptionIndex(value) {
-      return (this.slotOptions||[]).findIndex(option => {
-        option.componentOptions.propsData.value === value
-      });
-    },
-    processOption(option, value){
-      if (!option.componentOptions) return option;
-      const optionValue = option.componentOptions.propsData.value;
-      let selected;
+    // findOptionIndex (value) {
+    //   return (this.slotOptions || []).findIndex(option => {
+    //     option.componentOptions.propsData.value === value
+    //   })
+    // },
+    processOption (option, value) {
+      if (!option.componentOptions) return option
+      const optionValue = option.componentOptions.propsData.value
+      let selected
       if (this.multiple) {
-        selected = value.includes(optionValue);
+        selected = value.includes(optionValue)
       } else {
         selected = value === optionValue
       }
@@ -370,7 +390,7 @@ export default {
           propsData: propsData
         }
       }
-    },
+    }
   }
 }
 </script>

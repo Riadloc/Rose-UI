@@ -1,9 +1,24 @@
 <template>
-  <Drawer :transfer="false" :closable="false" :width="options.width" :placement="options.placement" :value="visible" @on-close="onDrawerClose" v-if="drawer">
+  <Drawer
+    v-if="drawer"
+    :transfer="false"
+    :closable="false"
+    :width="options.width"
+    :placement="options.placement"
+    :value="visible"
+    @on-close="onDrawerClose"
+  >
     <slot></slot>
   </Drawer>
-  <transition name="trainsition-drop" v-else>
-    <div :class="`${prefixCls}-dropdown`" :style="dropStyle" v-show="visible">
+  <transition
+    v-else
+    name="trainsition-drop"
+  >
+    <div
+      v-show="visible"
+      :class="`${prefixCls}-dropdown`"
+      :style="dropStyle"
+    >
       <slot></slot>
     </div>
   </transition>
@@ -29,7 +44,7 @@ export default {
     },
     drawerOptions: {
       type: Object,
-      default: function() {
+      default: function () {
         return {}
       }
     },
@@ -42,7 +57,7 @@ export default {
     }
   },
   computed: {
-    options() {
+    options () {
       const defaultOpts = {
         width: '300',
         placement: 'right'
@@ -51,7 +66,7 @@ export default {
     }
   },
   methods: {
-    onDrawerClose() {
+    onDrawerClose () {
       this.$emit('update:visible', false)
     }
   }
