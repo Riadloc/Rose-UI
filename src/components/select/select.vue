@@ -12,18 +12,12 @@
       @mouseleave="hasMouseHoverHead = false"
     >
       <div v-if="multiple">
-        <div
-          v-for="(item, index) in values"
+        <Tag
+          v-for="(item) in values"
           :key="item.value"
           style="display: inline-block;"
-          :class="['ivu-tag','ivu-tag-checked',`${prefixCls}-tag`]"
-        >
-          <span class="ivu-tag-text">{{ item.label }}</span>
-          <Icon
-            type="ios-close"
-            @click.native.stop="removeTag(index)"
-          ></Icon>
-        </div>
+          :label="item.label"
+        ></Tag>
         <input
           v-if="filterable"
           ref="input"
@@ -34,8 +28,8 @@
           autocomplete="false"
           spellcheck="false"
           type="text"
-          @keydown.delete="removeTag(values.length-1)"
           :placeholder="values.length?'':placeholder"
+          @keydown.delete="removeTag(values.length-1)"
         />
         <span
           v-else-if="!values.length"
@@ -79,7 +73,7 @@
       >
         <li>无匹配数据</li>
       </ul>
-      <ul>
+      <ul :class="`${prefixCls}-dropdown-list`">
         <functional-options
           :options="selectOptions"
           :slot-update-hook="updateSlotOptions"
@@ -101,6 +95,7 @@
 import { directive as clickOutside } from 'v-click-outside-x'
 import FunctionalOptions from './functional-options'
 import OptionHead from './option-head'
+import Tag from '@/components/tag/tag'
 import Emitter from './emitter'
 import { getStyle } from './utils'
 
@@ -121,7 +116,7 @@ const getOptionLabel = option => {
 export default {
   name: 'OcSelect',
   directives: { clickOutside },
-  components: { FunctionalOptions, OptionHead },
+  components: { FunctionalOptions, OptionHead, Tag },
   mixins: [ Emitter ],
   props: {
     value: {

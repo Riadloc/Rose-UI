@@ -8,7 +8,7 @@
  */
 
 // stylesheet
-import '../styles/select.scss'
+import './select.scss'
 
 // components
 import ocSelect from './select'

@@ -22,7 +22,6 @@
 </template>
 <script>
 import { ocSelect, ocOption } from '@/components/select'
-import '@/components/select/select.scss'
 import user from '@/assets/user.js'
 export default {
   name: 'Home',

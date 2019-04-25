@@ -7,7 +7,9 @@ $select-item-prefix-cls: "#{$css-prefix}select-item";
 $select-group-prefix-cls: "#{$css-prefix}select-group";
 
 .#{$select-prefix-cls} {
-    display: inline-block;
+    position: relative;
+    // display: inline-block;
+    margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
     vertical-align: middle;
@@ -235,14 +237,38 @@ $select-group-prefix-cls: "#{$css-prefix}select-group";
     }
 
     &-dropdown-list {
-        //display: inline-block;
-        min-width: 100%;
         list-style: none;
+        text-align: left;
     }
 
     // & &-dropdown{
     //     width: auto;
     // }
+    &-dropdown {
+        width: 100%;
+        position: absolute;
+        will-change: top, left;
+        transform-origin: center top 0px;
+        top: 32px;
+        left: 0px;
+        max-height: 200px;
+        overflow: auto;
+        margin: 5px 0;
+        padding: 5px 0;
+        background-color: #fff;
+        box-sizing: border-box;
+        border-radius: 4px;
+        box-shadow: 0 1px 6px rgba(0,0,0,.2);
+        z-index: 900;
+        &-list {
+          list-style: none;
+        }
+        .#{$select-prefix-cls}-not-found {
+          text-align: center;
+          font-size: 14px;
+          color: #c5c8ce;
+        }
+      }
 }
 
 @include select-item($select-prefix-cls, $select-item-prefix-cls);
@@ -272,14 +298,17 @@ $select-group-prefix-cls: "#{$css-prefix}select-group";
     }
 
     &-selected:after{
-        // @include ivu-icon();
-        //float: right;
-        font-size: 24px;
-        content: '\F171';
-        color: $selected-color;
+        content: "";
+        display: table;
+        width: 4px;
+        height: 8px;
         position: absolute;
-        top: 2px;
-        right: 8px;
+        top: 7px;
+        right: 16px;
+        border: 2px solid rgba(45,140,240,.9);
+        border-top: 0;
+        border-left: 0;
+        transform: rotate(45deg) scale(1);
     }
 }
 

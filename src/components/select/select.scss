@@ -1,9 +1,9 @@
 //prefix
-$css-prefix                  : "octet";
+$css-prefix                  : octet;
 $select-prefix-cls           : "#{$css-prefix}-select";
 $select-prefix-drawer-cls    : "#{$css-prefix}-drawer-select";
 $select-item-prefix-cls      : "#{$select-prefix-cls}-item";
-$form-item-prefix-cls        : "ivu-form-item";
+$form-item-prefix-cls        : ivu-form-item;
 
 //color
 $selection-border-color      : #57a3f3;
@@ -56,25 +56,21 @@ $font-size-large             : 16px;
 
   &-multiple {
     .#{$select-item-prefix-cls}-selected {
+      position: relative;
       background-color: transparent!important;
       &:after {
-        display: inline-block;
-        font-family: Ionicons;
-        font-style: normal;
-        font-weight: 400;
-        font-variant: normal;
-        text-transform: none;
-        text-rendering: auto;
-        line-height: 1;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        vertical-align: middle;
-        font-size: 24px;
-        content: "\F171";
-        color: rgba(45,140,240,.9);
+        content: "";
+        display: table;
+        width: 4px;
+        height: 8px;
         position: absolute;
-        top: 2px;
-        right: 8px;
+        top: 7px;
+        right: 16px;
+        border: 2px solid rgba(45,140,240,.9);
+        border-top: 0;
+        border-left: 0;
+        -webkit-transform: rotate(45deg) scale(1);
+        transform: rotate(45deg) scale(1);
       }
     }
     .#{$select-prefix-cls}-input {

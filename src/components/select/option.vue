@@ -52,8 +52,9 @@ export default {
   },
   methods: {
     select () {
+      console.log(this.disabled)
       if (this.disabled) return
-      this.dispatch('ocSelect', 'on-select-selected', {
+      this.dispatch('OcSelect', 'on-select-selected', {
         value: this.value,
         label: this.optionLabel
       })
