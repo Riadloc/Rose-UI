@@ -1,0 +1,41 @@
+//prefix (not editable)
+$css-prefix                    : more;
+$select-prefix-cls             : "#{$css-prefix}-select";
+$select-item-prefix-cls        : "#{$select-prefix-cls}-item";
+
+//text
+$text-color                    : #515a6e;
+
+//color
+$primary-color                 : #2d8cf0;
+$error-color                   : #ed4014;
+$subsidiary-color              : #808695;
+$selected-color                : fade-out($primary-color, .1);
+
+//input
+$input-color                   : $text-color;
+$input-hover-border-color      : $primary-color;
+$input-focus-border-color      : $primary-color;
+$input-disabled-bg             : #f3f3f3;
+$input-placeholder-color       : #c5c8ce;
+$input-height-base             : 32px;
+$input-height-large            : 36px;
+$input-height-small            : 24px;
+
+//font
+$font-size-base                : 14px;
+$font-size-small               : 12px;
+$font-size-large               : 16px;
+
+//border
+$border-color-base             : #dcdee2;
+
+//btn
+$btn-border-radius             : 4px;
+
+//background
+$background-color-select-hover : $input-disabled-bg;
+$backgroud-selection           : #ffffff;
+
+//select
+$select-arrow-color            : $subsidiary-color;

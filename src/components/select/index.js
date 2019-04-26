@@ -8,12 +8,12 @@
  */
 
 // stylesheet
-import './select.scss'
+import '@/assets/styles/index.scss'
 
 // components
-import ocSelect from './select'
-import ocOption from './option'
+import moreSelect from './select'
+import moreOption from './option'
 
-export { ocSelect, ocOption }
+export { moreSelect, moreOption }
 
-export default ocSelect
+export default moreSelect

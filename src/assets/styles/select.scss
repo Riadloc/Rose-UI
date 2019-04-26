@@ -1,303 +1,46 @@
-@import './custom.scss';
-@import './common.scss';
-@import './input.scss';
-
-$select-prefix-cls: "#{$css-prefix}select";
-$select-item-prefix-cls: "#{$css-prefix}select-item";
-$select-group-prefix-cls: "#{$css-prefix}select-group";
-
 .#{$select-prefix-cls} {
-    position: relative;
-    // display: inline-block;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-    vertical-align: middle;
-    color: $text-color;
-    font-size: $font-size-base;
-    //position: relative;
-    line-height: normal;
-
-    &-selection {
-        display: block;
-        box-sizing: border-box;
-        outline: none;
-        user-select: none;
-        cursor: pointer;
-        position: relative;
-
-        background-color: #fff;
-        border-radius: $btn-border-radius;
-        border: 1px solid $border-color-base;
-        transition: all $transition-time $ease-in-out;
-
-        &:hover, &-focused {
-            @include hover();
-            .#{$select-prefix-cls}-arrow {
-                display: inline-block;
-            }
-        }
-    }
-
-    &-arrow {
-        @include inner-arrow();
-    }
-
-    &-visible{
-        .#{$select-prefix-cls}-selection{
-            @include active();
-        }
-
-        .#{$select-prefix-cls}-arrow {
-            transform: rotate(180deg);
-            display: inline-block;
-        }
-    }
-
-    &-disabled {
-        .#{$select-prefix-cls}-selection {
-            @include disabled();
-
-            .#{$select-prefix-cls}-arrow {
-                display: none;
-            }
-
-            &:hover {
-                border-color: $border-color-base;
-                box-shadow: none;
-
-                .#{$select-prefix-cls}-arrow {
-                    display: inline-block;
-                }
-            }
-        }
-    }
-
-    &-single &-selection{
-        height: $input-height-base;
-        position: relative;
-
-        .#{$select-prefix-cls}-placeholder{
-            color: $input-placeholder-color;
-        }
-
-        .#{$select-prefix-cls}-placeholder, .#{$select-prefix-cls}-selected-value{
-            display: block;
-            height: $input-height-base - 2px;
-            line-height: $input-height-base - 2px;
-            font-size: $font-size-small;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding-left: 8px;
-            padding-right: 24px;
-        }
-    }
-
-    &-multiple &-selection{
-        padding: 0 24px 0 4px;
-        //min-height: $input-height-base;
-
-        .#{$select-prefix-cls}-placeholder{
-            display: block;
-            height: $input-height-base - 2px;
-            line-height: $input-height-base - 2px;
-            color: $input-placeholder-color;
-            font-size: $font-size-small;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding-left: 4px;
-            padding-right: 22px;
-        }
-    }
-
-    &-large.#{$select-prefix-cls}-single &-selection{
-        height: $input-height-large;
-
-        .#{$select-prefix-cls}-placeholder, .#{$select-prefix-cls}-selected-value{
-            height: $input-height-large - 2px;
-            line-height: $input-height-large - 2px;
-            font-size: $font-size-base;
-        }
-    }
-
-    &-large.#{$select-prefix-cls}-multiple &-selection{
-        min-height: $input-height-large;
-
-        .#{$select-prefix-cls}-placeholder, .#{$select-prefix-cls}-selected-value{
-            min-height: $input-height-large - 2px;
-            line-height: $input-height-large - 2px;
-            font-size: $font-size-base;
-        }
-    }
-
-    &-small.#{$select-prefix-cls}-single &-selection{
-        height: $input-height-small;
-        border-radius: $btn-border-radius-small;
-
-        .#{$select-prefix-cls}-placeholder, .#{$select-prefix-cls}-selected-value{
-            height: $input-height-small - 2px;
-            line-height: $input-height-small - 2px;
-        }
-    }
-
-    &-small.#{$select-prefix-cls}-multiple &-selection{
-        min-height: $input-height-small;
-        border-radius: $btn-border-radius-small;
-
-        .#{$select-prefix-cls}-placeholder, .#{$select-prefix-cls}-selected-value{
-            height: auto;
-            min-height: $input-height-small - 2px;
-            line-height: $input-height-small - 2px;
-        }
-    }
-
-    // input
-    &-input{
-        display: inline-block;
-        height: $input-height-base;
-        line-height: $input-height-base;
-        padding: 0 24px 0 8px;
-        font-size: $font-size-small;
-        outline: none;
-        border: none;
-        box-sizing: border-box;
-        color: $input-color;
-        background-color: transparent;
-        position: relative;
-        cursor: pointer;
-        @include placeholder();
-
-        &[disabled]{
-            cursor: $cursor-disabled;
-            color: #ccc;
-        }
-    }
-
-    &-single &-input{
-        width: 100%;
-    }
-
-    &-large &-input{
-        font-size: $font-size-base;
-        height: $input-height-large;
-    }
-
-    &-small &-input{
-        height: $input-height-small - 2px;
-        line-height: $input-height-small - 2px;
-    }
-
-    &-multiple &-input{
-        height: $input-height-base - 3px;
-        line-height: $input-height-base;
-        padding: 0 0 0 4px;
-    }
-
-    &-not-found{
-        text-align: center;
-        color: $btn-disable-color;
-        li:not([class^=ivu-]){
-            margin-bottom: 0;
-        }
-    }
-    &-loading{
-        text-align: center;
-        color: $btn-disable-color;
-    }
-
-    &-multiple .#{$css-prefix}tag{
-        height: 24px;
-        line-height: 22px;
-        margin: 3px 4px 3px 0;
-        //i{
-        //    top: 2px;
-        //}
-    }
-
-    &-large.#{$select-prefix-cls}-multiple .#{$css-prefix}tag{
-        height: 28px;
-        line-height: 26px;
-        font-size: $font-size-base;
-        i{
-            top: 1px;
-        }
-    }
-
-    &-small.#{$select-prefix-cls}-multiple .#{$css-prefix}tag{
-        height: 17px;
-        line-height: 15px;
-        font-size: $font-size-small;
-        padding: 0 6px;
-        margin: 3px 4px 2px 0;
-        i{
-            top: 1px;
-        }
-    }
-
-    &-dropdown-list {
-        list-style: none;
-        text-align: left;
-    }
-
-    // & &-dropdown{
-    //     width: auto;
-    // }
-    &-dropdown {
-        width: 100%;
-        position: absolute;
-        will-change: top, left;
-        transform-origin: center top 0px;
-        top: 32px;
-        left: 0px;
-        max-height: 200px;
-        overflow: auto;
-        margin: 5px 0;
-        padding: 5px 0;
-        background-color: #fff;
-        box-sizing: border-box;
-        border-radius: 4px;
-        box-shadow: 0 1px 6px rgba(0,0,0,.2);
-        z-index: 900;
-        &-list {
-          list-style: none;
-        }
-        .#{$select-prefix-cls}-not-found {
-          text-align: center;
-          font-size: 14px;
-          color: #c5c8ce;
-        }
+  width: 100%;
+  text-align: left;
+  position: relative;
+  display: inline-block;
+  color: $text-color;
+  font-size: $font-size-base;
+  &-visible {
+    .#{$select-prefix-cls}-selection {
+      @include active();
+      .#{$select-prefix-cls}-arrow {
+        transform: rotate(180deg);
       }
-}
-
-@include select-item($select-prefix-cls, $select-item-prefix-cls);
-
-// http://browserhacks.com/
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=488725
-  // fixed #1224 #1143 #1127
-@-moz-document url-prefix() {
-  .#{$select-item-prefix-cls} {
-      white-space: normal;
+    }
   }
-}
 
-.#{$select-prefix-cls}-multiple .#{$select-item-prefix-cls} {
-    position: relative;
-    &-selected{
-        color: $selected-color;
-        background: #fff;
+  &-focus {
+    .#{$select-prefix-cls}-selection {
+      @include hover()
     }
-    &-focus,&-selected:hover{
-        background: $background-color-select-hover;
-    }
+  }
 
-    &-selected.#{$select-item-prefix-cls}-focus {
-        color: shade($selected-color, 10%);
-        background: #fff;
+  &-disabled {
+    .#{$select-prefix-cls}-selection {
+      background-color: $input-disabled-bg;
+      opacity: 1;
+      cursor: not-allowed;
+      color: #ccc;
+      &:hover {
+        border-color: unset;
+        box-shadow: none;
+      }
+      .#{$select-prefix-cls}-input {
+        cursor: not-allowed;
+      }
     }
+  }
 
-    &-selected:after{
+  &-multiple {
+    .#{$select-item-prefix-cls}-selected {
+      position: relative;
+      background-color: transparent!important;
+      &:after {
         content: "";
         display: table;
         width: 4px;
@@ -305,37 +48,207 @@ $select-group-prefix-cls: "#{$css-prefix}select-group";
         position: absolute;
         top: 7px;
         right: 16px;
-        border: 2px solid rgba(45,140,240,.9);
+        border: 2px solid $selected-color;
         border-top: 0;
         border-left: 0;
         transform: rotate(45deg) scale(1);
+      }
     }
-}
+    .#{$select-prefix-cls}-input {
+      height: 29px;
+      line-height: 32px;
+    }
+  }
 
-.#{$select-group-prefix-cls} {
-    list-style: none;
+  &-large {
+    .#{$select-prefix-cls}-selection {
+      min-height: $input-height-large;
+      .#{$select-prefix-cls}-placeholder {
+        height: $input-height-large - 2px;
+        line-height: $input-height-large - 2px;
+        font-size: $font-size-base;
+      }
+      .#{$select-prefix-cls}-input {
+        height: $input-height-large - 2px;
+        line-height: $input-height-large - 2px;
+      }
+      .#{$select-prefix-cls}-tag {
+        height: 28px;
+        line-height: 28px;
+        font-size: $font-size-base;
+      }
+    }
+  }
+
+  &-small {
+    .#{$select-prefix-cls}-selection {
+      min-height: $input-height-small;
+      border-radius: 3px;
+      .#{$select-prefix-cls}-placeholder {
+        height: $input-height-small - 2px;
+        line-height: $input-height-small - 2px;
+      }
+      .#{$select-prefix-cls}-tag {
+        height: 17px;
+        line-height: 17px;
+        font-size: $font-size-small;
+        padding: 0 6px;
+        margin: 3px 4px 2px 0;
+      }
+      .#{$select-prefix-cls}-input {
+        height: $input-height-small - 2px;
+        line-height: $input-height-small - 2px;
+      }
+    }
+  }
+
+  &-selection {
+    display: block;
+    box-sizing: border-box;
+    min-height: 32px;
+    outline: 0;
+    user-select: none;
+    cursor: pointer;
+    position: relative;
+    background-color: $backgroud-selection;
+    padding: 0 24px 0 8px;
+    border-radius: $btn-border-radius;
+    border: 1px solid $border-color-base;
+    transition: all .2s ease-in-out;
+    &:hover {
+      @include hover();
+    }
+    .#{$select-prefix-cls}-input {
+      width: 100%;
+      display: inline-block;
+      height: $input-height-base;
+      line-height: $input-height-base;
+      font-size: $font-size-small;
+      outline: 0;
+      border: none;
+      box-sizing: border-box;
+      color: $input-color;
+      background-color: transparent;
+      position: relative;
+      cursor: pointer;
+      @include placeholder();
+    }
+    .#{$select-prefix-cls}-arrow {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      line-height: 1;
+      margin-top: -7px;
+      font-size: $font-size-base;
+      color: $select-arrow-color;
+      transition: all .2s ease-in-out;
+    }
+    .#{$select-prefix-cls}-tag {
+      height: 24px;
+      line-height: 24px;
+      margin: 3px 4px 3px 0;
+      vertical-align: top;
+    }
+    .#{$select-prefix-cls}-placeholder {
+      display: block;
+      height: 30px;
+      line-height: 30px;
+      color: $input-placeholder-color;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-left: 4px;
+      padding-right: 22px;
+    }
+  }
+
+  &-dropdown {
+    width: 100%;
+    position: absolute;
+    will-change: top, left;
+    transform-origin: center top 0px;
+    top: 32px;
+    left: 0px;
+    max-height: 200px;
+    overflow: auto;
+    margin: 5px 0;
+    padding: 5px 0 0;
+    background-color: #fff;
+    box-sizing: border-box;
+    border-radius: 4px;
+    box-shadow: 0 1px 6px fade-out(#000, .8);
+    z-index: 900;
+    &-list {
+      list-style: none;
+    }
+    .#{$select-prefix-cls}-not-found {
+      text-align: center;
+      font-size: 14px;
+      color: $input-placeholder-color;
+    }
+  }
+
+  .#{$select-item-prefix-cls} {
+    position: relative;
     margin: 0;
-    padding: 0;
-
-    &-title {
-        padding-left: 8px;
-        font-size: 12px;
-        color: $legend-color;
-        height: 30px;
-        line-height: 30px;
+    line-height: normal;
+    padding: 7px 16px;
+    clear: both;
+    color: $text-color;
+    font-size: 12px!important;
+    white-space: nowrap;
+    list-style: none;
+    cursor: pointer;
+    transition: background .2s ease-in-out;
+    &:hover {
+      background: $background-color-select-hover!important;
     }
+  }
+  .#{$select-item-prefix-cls}-selected {
+    color: $selected-color;
+    background: $background-color-select-hover;
+  }
+  .#{$select-item-prefix-cls}-disabled {
+    color: $input-placeholder-color;
+    cursor: not-allowed;
+  }
+
+  .trainsition-drop-enter-active, .trainsition-drop-appear {
+    opacity: 0;
+    animation-timing-function: ease-in-out;
+    animation-name: transitionDropIn;
+    animation-duration: .3s;
+    animation-fill-mode: both;
+  }
+  .trainsition-drop-leave-active {
+    animation-name: transitionDropOut;
+    animation-duration: .3s;
+    animation-fill-mode: both;
+    animation-timing-function: ease-in-out;
+  }
+
+  @keyframes transitionDropIn {
+    0% {
+      opacity: 0;
+      transform: scaleY(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes transitionDropOut {
+    0% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleY(0.8);
+    }
+  }
+
 }
 
-.#{$form-item-prefix-cls}-error{
-    .#{$select-prefix-cls}{
-        &-selection{
-            border: 1px solid $error-color;
-        }
-        &-arrow{
-            color: $error-color;
-        }
-        &-visible .#{$select-prefix-cls}-selection{
-            @include active-error;
-        }
-    }
-}

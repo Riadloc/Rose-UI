@@ -10,18 +10,6 @@
   >
     <slot></slot>
   </Drawer>
-  <transition
-    v-else
-    name="trainsition-drop"
-  >
-    <div
-      v-show="visible"
-      :class="`${prefixCls}-dropdown`"
-      :style="dropStyle"
-    >
-      <slot></slot>
-    </div>
-  </transition>
 </template>
 <script>
 export default {

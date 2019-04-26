@@ -20,3 +20,31 @@ export function getStyle (element, styleName) {
     return element.style[styleName]
   }
 }
+
+function firstUpperCase (str) {
+  return str.toString()[0].toUpperCase() + str.toString().slice(1)
+}
+
+// Warn
+export function warnProp (prop, correctType, wrongType) {
+  correctType = firstUpperCase(correctType)
+  wrongType = firstUpperCase(wrongType)
+  console.error(`[more-select warn]: Invalid prop: type check failed for prop ${prop}. Expected ${correctType}, got ${wrongType}.`)
+}
+
+export function typeOf (obj) {
+  const toString = Object.prototype.toString
+  const map = {
+    '[object Boolean]': 'boolean',
+    '[object Number]': 'number',
+    '[object String]': 'string',
+    '[object Function]': 'function',
+    '[object Array]': 'array',
+    '[object Date]': 'date',
+    '[object RegExp]': 'regExp',
+    '[object Undefined]': 'undefined',
+    '[object Null]': 'null',
+    '[object Object]': 'object'
+  }
+  return map[toString.call(obj)]
+}

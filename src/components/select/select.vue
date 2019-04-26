@@ -13,10 +13,11 @@
     >
       <div v-if="multiple">
         <Tag
-          v-for="(item) in values"
+          v-for="(item, index) in values"
           :key="item.value"
-          style="display: inline-block;"
+          :class="`${prefixCls}-tag`"
           :label="item.label"
+          @on-close="()=>removeTag(index)"
         ></Tag>
         <input
           v-if="filterable"
@@ -50,57 +51,58 @@
       <Icon
         v-if="canBeCleared"
         :class="`${prefixCls}-arrow`"
-        type="ios-close-circle"
+        type="roundclosefill"
         @click.native.stop="clearSelect"
       />
       <Icon
         v-else
         :class="`${prefixCls}-arrow`"
-        type="ios-arrow-down"
+        type="unfold"
       />
     </div>
-    <OptionHead
-      :drawer="drawer"
-      :drawer-options="drawerOptions"
-      :visible.sync="visible"
-      :multiple="multiple"
-      :drop-style="dropStyle"
-      :prefix-cls="prefixCls"
+    <transition
+      name="trainsition-drop"
     >
-      <ul
-        v-show="!selectOptions.length"
-        :class="`${prefixCls}-not-found`"
+      <div
+        v-show="visible"
+        :class="`${prefixCls}-dropdown`"
+        :style="dropStyle"
       >
-        <li>无匹配数据</li>
-      </ul>
-      <ul :class="`${prefixCls}-dropdown-list`">
-        <functional-options
-          :options="selectOptions"
-          :slot-update-hook="updateSlotOptions"
-          :slot-options="slotOptions"
-        ></functional-options>
-        <li
-          v-show="limitRange < (slotOptions||[]).length && !querying"
-          key="more"
-          :class="`${prefixCls}-item`"
-          @click="loadMore"
+        <ul
+          v-show="!selectOptions.length"
+          :class="`${prefixCls}-not-found`"
         >
-          加载更多选项<Icon type="ios-arrow-down" />
-        </li>
-      </ul>
-    </OptionHead>
+          <li>无匹配数据</li>
+        </ul>
+        <ul :class="`${prefixCls}-dropdown-list`">
+          <functional-options
+            :options="selectOptions"
+            :slot-update-hook="updateSlotOptions"
+            :slot-options="slotOptions"
+          ></functional-options>
+          <li
+            v-show="limitRange < (slotOptions||[]).length && !querying"
+            key="more"
+            :class="`${prefixCls}-item`"
+            @click="loadMore"
+          >
+            --加载更多选项--
+          </li>
+        </ul>
+      </div>
+    </transition>
   </div>
 </template>
 <script>
 import { directive as clickOutside } from 'v-click-outside-x'
 import FunctionalOptions from './functional-options'
-import OptionHead from './option-head'
 import Tag from '@/components/tag/tag'
+import Icon from '@/components/icon/icon'
 import Emitter from './emitter'
-import { getStyle } from './utils'
+import { getStyle, warnProp, typeOf } from './utils'
 
-const prefixCls = 'octet-select'
-const limitDft = 50
+const prefixCls = 'more-select'
+const defaultLimit = 50
 
 const getNestedProperty = (obj, path) => {
   const keys = path.split('.')
@@ -111,12 +113,12 @@ const getOptionLabel = option => {
   if (option.componentOptions.propsData.label) return option.componentOptions.propsData.label
   const textContent = (option.componentOptions.children || []).reduce((str, child) => str + (child.text || ''), '')
   const innerHTML = getNestedProperty(option, 'data.domProps.innerHTML')
-  return textContent || (typeof innerHTML === 'string' ? innerHTML : '')
+  return (textContent || (typeOf(innerHTML) === 'string' ? innerHTML : '')).trim()
 }
 export default {
-  name: 'OcSelect',
+  name: 'MoreSelect',
   directives: { clickOutside },
-  components: { FunctionalOptions, OptionHead, Tag },
+  components: { FunctionalOptions, Tag, Icon },
   mixins: [ Emitter ],
   props: {
     value: {
@@ -158,7 +160,7 @@ export default {
     },
     limit: {
       type: Number,
-      default: limitDft
+      default: defaultLimit
     }
   },
   data () {
@@ -270,7 +272,7 @@ export default {
     mapInitValue (value) {
       if (value !== null && value !== undefined) {
         if (this.multiple) {
-          if (typeof value === 'string') value = [value].filter(Boolean)
+          if (typeOf(value) === 'string') value = [value].filter(Boolean)
           this.values = value.map(item => {
             const { label } = this.getOptionData(item) || {}
             return {
@@ -279,6 +281,9 @@ export default {
             }
           })
         } else {
+          if (typeOf(value) === 'array') {
+            warnProp('value', 'String', 'Array')
+          }
           const { label } = this.getOptionData(value) || {}
           this.query = label
           this.selectedLabel = label
@@ -303,8 +308,6 @@ export default {
         }
         this.query = ''
       } else {
-        this.query = label
-        this.selectedLabel = label
         this.visible = false
         this.$emit('input', value)
         this.$emit('on-change', value)
@@ -360,11 +363,6 @@ export default {
       })
       return options
     },
-    // findOptionIndex (value) {
-    //   return (this.slotOptions || []).findIndex(option => {
-    //     option.componentOptions.propsData.value === value
-    //   })
-    // },
     processOption (option, value) {
       if (!option.componentOptions) return option
       const optionValue = option.componentOptions.propsData.value

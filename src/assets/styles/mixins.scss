@@ -1,0 +1,45 @@
+@mixin hover($color: $input-hover-border-color) {
+  border-color: mix(#fff, $color, 20%);
+}
+
+@mixin active($color: $input-hover-border-color) {
+  border-color: mix(#fff, $color, 20%);
+  outline: 0;
+  box-shadow: 0 0 0 2px fade-out($color, 0.8)
+}
+
+@mixin active-error() {
+  border-color: $error-color;
+  outline: 0;
+  box-shadow: 0 0 0 2px fade-out($error-color, .8);
+}
+
+@mixin placeholder($color: $input-placeholder-color) {
+  // Firefox
+  &::-moz-placeholder {
+      color: $color;
+      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+  }
+  // Internet Explorer 10+
+  &:-ms-input-placeholder {
+      color: $color;
+  }
+  // Safari and Chrome
+  &::-webkit-input-placeholder {
+      color: $color;
+  }
+}
+
+@mixin form-item-error {
+  .#{$select-prefix-cls}{
+    &-selection{
+      border: 1px solid $error-color;
+    }
+    &-arrow{
+      color: $error-color;
+    }
+    &-visible &-selection{
+      @include active-error();
+    }
+  }
+}

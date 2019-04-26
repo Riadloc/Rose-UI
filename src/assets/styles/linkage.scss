@@ -1,0 +1,11 @@
+/* FormItem validate error */
+
+// iView 
+.ivu-form-item-error {
+  @include form-item-error();
+}
+
+// Element
+.el-form-item.is-error {
+  @include form-item-error();
+}

@@ -10,7 +10,7 @@
 <script>
 import Emitter from './emitter'
 export default {
-  name: 'OcOption',
+  name: 'MoreOption',
   mixins: [ Emitter ],
   props: {
     value: {
@@ -34,7 +34,7 @@ export default {
   },
   computed: {
     classes () {
-      const prefixCls = 'octet-select-item'
+      const prefixCls = 'more-select-item'
       return [
         `${prefixCls}`,
         {
@@ -47,14 +47,13 @@ export default {
       return this.label || this.value
     },
     optionLabel () {
-      return this.label || (this.$el && this.$el.textContent)
+      return (this.label || (this.$el && this.$el.textContent)).trim()
     }
   },
   methods: {
     select () {
-      console.log(this.disabled)
       if (this.disabled) return
-      this.dispatch('OcSelect', 'on-select-selected', {
+      this.dispatch('MoreSelect', 'on-select-selected', {
         value: this.value,
         label: this.optionLabel
       })

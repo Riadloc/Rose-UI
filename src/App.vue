@@ -2,34 +2,35 @@
   <div id="app">
     <div class="home">
       <div class="content">
-        <oc-select
+        <more-select
           v-model="user"
           multiple
           filterable
           style="width: 600px;"
         >
-          <oc-option
-            v-for="(item,index) in user_list"
+          <more-option
+            v-for="(item, index) in districts"
             :key="index"
-            :value="item.core_user_id"
+            :value="item"
           >
-            {{ item.display_name }}
-          </oc-option>
-        </oc-select>
+            {{ item }}
+          </more-option>
+        </more-select>
       </div>
     </div>
   </div>
 </template>
 <script>
-import { ocSelect, ocOption } from '@/components/select'
-import user from '@/assets/user.js'
+import { moreSelect, moreOption } from '@/components/select'
+import districts from '@/assets/districts.js'
 export default {
   name: 'Home',
-  components: { ocSelect, ocOption },
+  components: { moreSelect, moreOption },
   data () {
+    const list = Object.values(districts).reduce((acc, cur) => acc.concat(cur), [])
     return {
-      user: ['1'],
-      user_list: user
+      user: '',
+      districts: list
     }
   },
   methods: {
