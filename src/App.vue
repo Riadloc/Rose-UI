@@ -4,8 +4,10 @@
       <div class="content">
         <more-select
           v-model="user"
-          multiple
           filterable
+          clearable
+          allow-create
+          not-found-text="未找到"
           style="width: 600px;"
         >
           <more-option

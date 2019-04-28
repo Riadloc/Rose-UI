@@ -4,6 +4,9 @@
     v-click-outside:mousedown.capture="onClickOutside"
     :class="classes"
   >
+    <button @click="test">
+      测试
+    </button>
     <div
       ref="selection"
       :class="`${prefixCls}-selection`"
@@ -65,16 +68,24 @@
     >
       <div
         v-show="visible"
-        :class="`${prefixCls}-dropdown`"
+        :class="`${prefixCls}-dropdown ${popperClass}`"
         :style="dropStyle"
       >
         <ul
-          v-show="!selectOptions.length"
+          v-show="!(selectOptions.length || (allowCreate && query))"
           :class="`${prefixCls}-not-found`"
         >
-          <li>无匹配数据</li>
+          <li>{{ notFoundText }}</li>
         </ul>
         <ul :class="`${prefixCls}-dropdown-list`">
+          <li
+            v-show="allowCreate && query"
+            key="create"
+            :class="`${prefixCls}-item`"
+            @click="onCreateItemClick"
+          >
+            {{ query }}
+          </li>
           <functional-options
             :options="selectOptions"
             :slot-update-hook="updateSlotOptions"
@@ -103,6 +114,10 @@ import { getStyle, warnProp, typeOf } from './utils'
 
 const prefixCls = 'more-select'
 const defaultLimit = 50
+const defaultEvents = [
+  { componentName: 'FormItem', event: 'on-form-change' }, // iView Form Event
+  { componentName: 'ElFormItem', event: 'el.form.change' } // Element Form Event
+]
 
 const getNestedProperty = (obj, path) => {
   const keys = path.split('.')
@@ -137,26 +152,41 @@ export default {
       type: Boolean,
       default: false
     },
+    allowCreate: {
+      type: Boolean,
+      default: false
+    },
     placeholder: {
       type: String,
       default: '请选择'
+    },
+    notFoundText: {
+      type: String,
+      default: '无匹配数据'
+    },
+    popperClass: {
+      type: String,
+      default: ''
     },
     filterable: {
       type: Boolean,
       default: false
     },
-    drawer: {
+    automaticDropdown: {
       type: Boolean,
       default: false
-    },
-    drawerOptions: {
-      type: Object
     },
     size: {
       validator (value) {
         return ['small', 'large', 'default'].includes(value)
       },
       default: 'default'
+    },
+    events: {
+      type: Array,
+      default: function () {
+        return []
+      }
     },
     limit: {
       type: Number,
@@ -203,6 +233,13 @@ export default {
       }
       return options.map(option => this.processOption(option, this.value))
     },
+    fullEvents () {
+      return (
+        this.events
+          .concat(defaultEvents)
+          .filter(({ componentName }, index, array) => index === array.findIndex(item => item.componentName === componentName))
+      )
+    },
     canBeCleared () {
       return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple && !this.disabled
     },
@@ -217,20 +254,20 @@ export default {
   watch: {
     value (val) {
       const newValue = JSON.stringify(val)
-      const curValues = JSON.stringify(this.values.map(({ value }) => value))
-      const shouldMapping = newValue !== curValues
+      const curValue = JSON.stringify(this.multiple ? this.values.map(({ value }) => value) : this.query)
+      const shouldMapping = newValue !== curValue
       if (shouldMapping) {
         this.mapInitValue(val)
-        this.dispatch('FormItem', 'on-form-change', val)
+        this.dispatchEvents(val)
       }
     },
     query (val) {
       if (val === this.selectedLabel || !val) {
         this.querying = false
-        this.inputLength = 20
+        this.inputLength = 20 // used by mulitple
       } else {
         const fontSize = getStyle(this.$refs['selection'], 'fontSize')
-        this.inputLength = val.length * parseInt(fontSize) + 20
+        this.inputLength = val.length * parseInt(fontSize) + 20 // used by mulitple
         this.visible = true
         this.querying = true
       }
@@ -245,14 +282,16 @@ export default {
       if (shouldEmit) {
         this.$emit('on-change', newValue)
         this.$emit('input', newValue)
-        this.dispatch('FormItem', 'on-form-change', newValue)
+        this.dispatchEvents(newValue)
       }
     },
     visible (val) {
       this.$emit('on-open-change', val)
     },
-    slotOptions () {
-      this.mapInitValue(this.value)
+    isFocused () {
+      if (this.automaticDropdown && !this.visible) {
+        this.visible = true
+      }
     }
   },
   mounted () {
@@ -290,6 +329,11 @@ export default {
         }
       }
     },
+    dispatchEvents (value) {
+      this.fullEvents.forEach(({ componentName, event }) => {
+        this.dispatch(componentName, event, value)
+      })
+    },
     onInputClick () {
       if (this.disabled) return
       if (this.multiple && this.filterable) {
@@ -298,7 +342,7 @@ export default {
       this.isFocused = true
       this.visible = !this.visible
     },
-    onOptionClick ({ value, label }) {
+    onOptionClick ({ value, label, created = false }) {
       if (this.multiple) {
         const valueIndex = this.values.findIndex(item => item.value === value)
         if (~valueIndex) {
@@ -308,6 +352,8 @@ export default {
         }
         this.query = ''
       } else {
+        this.query = value
+        this.selectedLabel = value
         this.visible = false
         this.$emit('input', value)
         this.$emit('on-change', value)
@@ -329,13 +375,41 @@ export default {
         this.query = this.selectedLabel
       }
     },
+    onCreateItemClick () {
+      const { query } = this
+      this.onOptionClick({
+        value: query,
+        label: query,
+        created: true
+      })
+    },
     removeTag (index) {
       if (!this.disabled && !this.query) {
         this.values.splice(index, 1)
       }
     },
-    updateSlotOptions () {
-      this.slotOptions = this.$slots.default
+    test () {
+      const flag = this.slotOptions === this.$slots.default
+      console.log(flag)
+      if (!flag) {
+        console.log({
+          A: this.slotOptions,
+          B: this.$slots.default
+        })
+        this.slotOptions.forEach((item, index) => {
+          if (this.$slots.default[index] !== item) {
+            console.log({
+              C: this.$slots.default[index],
+              D: item
+            })
+          }
+        })
+      }
+    },
+    updateSlotOptions (parent) {
+      console.log(parent === this)
+      // this.slotOptions = this.$slots.default
+      // this.mapInitValue(this.value)
     },
     loadMore () {
       this.limitRange = this.limitRange + this.limit
