@@ -1,10 +1,9 @@
 import Vue from 'vue'
 import App from './App.vue'
-import iView from 'iview'
 
-// import 'iview/dist/styles/iview.css'
+import MoreSelect from '@/components/select'
 
-Vue.use(iView)
+Vue.use(MoreSelect)
 
 Vue.config.productionTip = false
 

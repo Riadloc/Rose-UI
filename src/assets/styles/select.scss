@@ -189,6 +189,18 @@
     }
   }
 
+  &-more {
+    text-align: center;
+  }
+
+  &-spin {
+    width: 20px!important;
+    height: 20px!important;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+
   .#{$select-item-prefix-cls} {
     position: relative;
     margin: 0;

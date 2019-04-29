@@ -1,6 +1,6 @@
 <template>
-  <div class="ivu-tag">
-    <span class="ivu-tag-text">{{ label }}</span>
+  <div class="more-tag">
+    <span class="more-tag-text">{{ label }}</span>
     <Icon
       type="close"
       class="close"
@@ -27,7 +27,7 @@ export default {
 }
 </script>
 <style lang="scss">
-.ivu-tag {
+.more-tag {
   display: inline-block;
   height: 24px;
   line-height: 24px;

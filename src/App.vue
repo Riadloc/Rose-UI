@@ -4,9 +4,11 @@
       <div class="content">
         <more-select
           v-model="user"
+          multiple
           filterable
           clearable
           allow-create
+          :load-more="20"
           not-found-text="未找到"
           style="width: 600px;"
         >
@@ -23,21 +25,14 @@
   </div>
 </template>
 <script>
-import { moreSelect, moreOption } from '@/components/select'
 import districts from '@/assets/districts.js'
 export default {
   name: 'Home',
-  components: { moreSelect, moreOption },
   data () {
     const list = Object.values(districts).reduce((acc, cur) => acc.concat(cur), [])
     return {
       user: '',
       districts: list
-    }
-  },
-  methods: {
-    update () {
-      this.user.push('3')
     }
   }
 }

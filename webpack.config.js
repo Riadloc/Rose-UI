@@ -87,6 +87,7 @@ module.exports = (env, argv) => {
     config.plugins.push(
       new HtmlWebpackPlugin({
         title: 'More Select',
+        favicon: './public/favicon.ico',
         template: './public/index.html'
       })
     )

@@ -89,12 +89,15 @@
             :slot-options="slotOptions"
           ></functional-options>
           <li
-            v-show="limitRange < (slotOptions||[]).length && !querying"
+            v-show="showLoadMoreTip"
             key="more"
-            :class="`${prefixCls}-item ${loadMoreClass}`"
+            :class="`${prefixCls}-more ${loadMoreClass}`"
             @click="onLoadMoreClick"
           >
-            {{ loadMoreText }}
+            <slot name="loadmore">
+              <Spin :class="`${prefixCls}-spin`"></Spin>
+              <span>正在加载...</span>
+            </slot>
           </li>
         </ul>
       </div>
@@ -106,11 +109,11 @@ import { directive as clickOutside } from 'v-click-outside-x'
 import FunctionalOptions from './functional-options'
 import Tag from '@/components/tag/tag'
 import Icon from '@/components/icon/icon'
+import Spin from '@/components/spin/spin'
 import Emitter from './emitter'
-import { getStyle, warnProp, typeOf } from './utils'
+import { getStyle, warnProp, typeOf, throttle } from './utils'
 
 const prefixCls = 'more-select'
-const defaultLimit = 50
 const defaultEvents = [
   { componentName: 'FormItem', event: 'on-form-change' }, // iView Form Event
   { componentName: 'ElFormItem', event: 'el.form.change' } // Element Form Event
@@ -130,7 +133,7 @@ const getOptionLabel = option => {
 export default {
   name: 'MoreSelect',
   directives: { clickOutside },
-  components: { FunctionalOptions, Tag, Icon },
+  components: { FunctionalOptions, Tag, Icon, Spin },
   mixins: [ Emitter ],
   props: {
     value: {
@@ -190,12 +193,7 @@ export default {
       }
     },
     loadMore: {
-      type: Number,
-      default: defaultLimit
-    },
-    loadMoreText: {
-      type: String,
-      default: '--加载更多选项--'
+      type: [Number, Boolean]
     },
     loadMoreClass: {
       type: String,
@@ -217,7 +215,7 @@ export default {
       selectedLabel: '',
       dropStyle: { top: '32px' },
       inputLength: 20,
-      limitRange: 1 * this.loadMore
+      limitRange: 0
     }
   },
   computed: {
@@ -233,11 +231,19 @@ export default {
         }
       ]
     },
+    optionLimit () {
+      const LIMIT = 50
+      if (typeOf(this.loadMore) === 'number') {
+        return this.loadMore
+      }
+      return LIMIT
+    },
     selectOptions () {
       const { query, selectedLabel } = this
       let options
       if (query === selectedLabel || !query) {
-        options = (this.slotOptions || []).slice(0, this.limitRange - 1)
+        const slotOptions = this.slotOptions || []
+        options = (this.loadMore ? slotOptions.slice(0, this.limitRange - 1) : slotOptions)
       } else {
         options = this.findOptions(query)
       }
@@ -254,6 +260,9 @@ export default {
       const newValue = JSON.stringify(this.value)
       const curValue = JSON.stringify(this.multiple ? this.values.map(({ value }) => value) : this.query)
       return newValue !== curValue
+    },
+    showLoadMoreTip () {
+      return this.loadMore && this.limitRange < (this.slotOptions || []).length && !this.querying
     },
     canBeCleared () {
       return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple && !this.disabled
@@ -305,6 +314,7 @@ export default {
       }
     },
     visible (val) {
+      // (val ? this.bindLoadEvent : this.offLoadEvent)()
       this.$emit('on-open-change', val)
     },
     isFocused () {
@@ -314,8 +324,19 @@ export default {
     }
   },
   mounted () {
+    if (this.loadMore) {
+      this.fn = throttle(this.refresh, 100)
+      this.scrollEl = document.querySelector(`.${prefixCls}-dropdown`)
+      this.bindLoadEvent()
+      this.limitRange = this.optionLimit
+    }
     this.$on('on-select-selected', this.onOptionClick)
     this.mapInitValue(this.value)
+  },
+  beforeDestroy () {
+    if (this.fn) {
+      this.offLoadEvent()
+    }
   },
   methods: {
     refreshDropTop () {
@@ -347,6 +368,12 @@ export default {
           this.selectedLabel = label
         }
       }
+    },
+    bindLoadEvent () {
+      this.scrollEl.addEventListener('scroll', this.fn)
+    },
+    offLoadEvent () {
+      this.scrollEl.removeEventListener('scroll', this.fn)
     },
     dispatchEvents (value) {
       this.fullEvents.forEach(({ componentName, event }) => {
@@ -427,22 +454,14 @@ export default {
         }
       }
     },
-    test () {
-      const flag = this.slotOptions === this.$slots.default
-      console.log(flag)
-      if (!flag) {
-        console.log({
-          A: this.slotOptions,
-          B: this.$slots.default
-        })
-        this.slotOptions.forEach((item, index) => {
-          if (this.$slots.default[index] !== item) {
-            console.log({
-              C: this.$slots.default[index],
-              D: item
-            })
-          }
-        })
+    refresh () {
+      const { height } = this.scrollEl.getBoundingClientRect()
+      const { scrollTop, scrollHeight } = this.scrollEl
+      const offset = 10
+      if (scrollTop + offset + height >= scrollHeight) {
+        setTimeout(() => {
+          this.onLoadMoreClick()
+        }, 1000)
       }
     },
     updateSlotOptions (parent) {
@@ -452,7 +471,7 @@ export default {
       }
     },
     onLoadMoreClick () {
-      this.limitRange = this.limitRange + this.loadMore
+      this.limitRange = this.limitRange + this.optionLimit
     },
     clearSelect () {
       this.query = ''
