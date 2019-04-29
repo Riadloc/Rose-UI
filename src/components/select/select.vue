@@ -4,9 +4,6 @@
     v-click-outside:mousedown.capture="onClickOutside"
     :class="classes"
   >
-    <button @click="test">
-      测试
-    </button>
     <div
       ref="selection"
       :class="`${prefixCls}-selection`"
@@ -29,11 +26,11 @@
           :style="inputStyle"
           :class="`${prefixCls}-input`"
           :readonly="!filterable"
-          autocomplete="false"
+          :autocomplete="autocomplete"
           spellcheck="false"
           type="text"
           :placeholder="values.length?'':placeholder"
-          @keydown.delete="removeTag(values.length-1)"
+          @keydown.delete="removeTag()"
         />
         <span
           v-else-if="!values.length"
@@ -45,7 +42,7 @@
           v-model="query"
           :class="`${prefixCls}-input`"
           :readonly="!filterable || disabled"
-          autocomplete="false"
+          :autocomplete="autocomplete"
           spellcheck="false"
           type="text"
           :placeholder="placeholder"
@@ -81,7 +78,7 @@
           <li
             v-show="allowCreate && query"
             key="create"
-            :class="`${prefixCls}-item`"
+            :class="[`${prefixCls}-item`, { [`${prefixCls}-item-selected`]: createValues.includes(query) }]"
             @click="onCreateItemClick"
           >
             {{ query }}
@@ -94,10 +91,10 @@
           <li
             v-show="limitRange < (slotOptions||[]).length && !querying"
             key="more"
-            :class="`${prefixCls}-item`"
-            @click="loadMore"
+            :class="`${prefixCls}-item ${loadMoreClass}`"
+            @click="onLoadMoreClick"
           >
-            --加载更多选项--
+            {{ loadMoreText }}
           </li>
         </ul>
       </div>
@@ -156,6 +153,10 @@ export default {
       type: Boolean,
       default: false
     },
+    autocomplete: {
+      type: Boolean,
+      default: false
+    },
     placeholder: {
       type: String,
       default: '请选择'
@@ -188,9 +189,17 @@ export default {
         return []
       }
     },
-    limit: {
+    loadMore: {
       type: Number,
       default: defaultLimit
+    },
+    loadMoreText: {
+      type: String,
+      default: '--加载更多选项--'
+    },
+    loadMoreClass: {
+      type: String,
+      default: ''
     }
   },
   data () {
@@ -203,11 +212,12 @@ export default {
       slotOptions: this.$slots.default,
       query: '',
       values: [],
+      createValues: [],
       multipleList: [],
       selectedLabel: '',
       dropStyle: { top: '32px' },
       inputLength: 20,
-      limitRange: 1 * this.limit
+      limitRange: 1 * this.loadMore
     }
   },
   computed: {
@@ -240,6 +250,11 @@ export default {
           .filter(({ componentName }, index, array) => index === array.findIndex(item => item.componentName === componentName))
       )
     },
+    shouldMapping () {
+      const newValue = JSON.stringify(this.value)
+      const curValue = JSON.stringify(this.multiple ? this.values.map(({ value }) => value) : this.query)
+      return newValue !== curValue
+    },
     canBeCleared () {
       return this.clearable && this.query && this.hasMouseHoverHead && !this.multiple && !this.disabled
     },
@@ -253,15 +268,12 @@ export default {
   },
   watch: {
     value (val) {
-      const newValue = JSON.stringify(val)
-      const curValue = JSON.stringify(this.multiple ? this.values.map(({ value }) => value) : this.query)
-      const shouldMapping = newValue !== curValue
-      if (shouldMapping) {
+      if (this.shouldMapping) {
         this.mapInitValue(val)
         this.dispatchEvents(val)
       }
     },
-    query (val) {
+    query (val, oldVal) {
       if (val === this.selectedLabel || !val) {
         this.querying = false
         this.inputLength = 20 // used by mulitple
@@ -270,6 +282,13 @@ export default {
         this.inputLength = val.length * parseInt(fontSize) + 20 // used by mulitple
         this.visible = true
         this.querying = true
+      }
+      if (this.allowCreate &&
+        val !== this.selectedLabel &&
+        oldVal === this.selectedLabel &&
+        !this.multiple
+      ) {
+        this.createValues.pop()
       }
       this.$emit('on-query-change', val)
       this.refreshDropTop()
@@ -344,9 +363,9 @@ export default {
     },
     onOptionClick ({ value, label, created = false }) {
       if (this.multiple) {
-        const valueIndex = this.values.findIndex(item => item.value === value)
-        if (~valueIndex) {
-          this.values.splice(valueIndex, 1)
+        const index = this.values.findIndex(item => item.value === value)
+        if (~index) {
+          this.values.splice(index, 1)
         } else {
           this.values.push({ value, label })
         }
@@ -357,6 +376,18 @@ export default {
         this.visible = false
         this.$emit('input', value)
         this.$emit('on-change', value)
+      }
+      if (created) {
+        if (this.multiple) {
+          const index = this.createValues.findIndex(item => item === value)
+          if (~index) {
+            this.createValues.splice(index, 1)
+          } else {
+            this.createValues.push(value)
+          }
+        } else {
+          this.createValues = [value]
+        }
       }
     },
     onClickOutside (evt) {
@@ -384,8 +415,16 @@ export default {
       })
     },
     removeTag (index) {
-      if (!this.disabled && !this.query) {
+      index = index || (this.values.length - 1)
+      if (!this.disabled && !this.query && ~index) {
+        const { value } = this.values[index]
         this.values.splice(index, 1)
+        if (this.allowCreate) {
+          const cIndex = this.createValues.findIndex(item => item === value)
+          if (~cIndex) {
+            this.createValues.splice(cIndex, 1)
+          }
+        }
       }
     },
     test () {
@@ -407,12 +446,13 @@ export default {
       }
     },
     updateSlotOptions (parent) {
-      console.log(parent === this)
-      // this.slotOptions = this.$slots.default
-      // this.mapInitValue(this.value)
+      this.slotOptions = this.$slots.default
+      if (this.shouldMapping) {
+        this.mapInitValue(this.value)
+      }
     },
-    loadMore () {
-      this.limitRange = this.limitRange + this.limit
+    onLoadMoreClick () {
+      this.limitRange = this.limitRange + this.loadMore
     },
     clearSelect () {
       this.query = ''
