@@ -176,10 +176,6 @@ export default {
       type: Boolean,
       default: false
     },
-    automaticDropdown: {
-      type: Boolean,
-      default: false
-    },
     size: {
       validator (value) {
         return ['small', 'large', 'default'].includes(value)

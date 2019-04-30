@@ -1,7 +1,9 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
-
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const TerserJSPlugin = require("terser-webpack-plugin")
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 const resolve = function (dir) {
   return path.join(__dirname, dir)
 }
@@ -12,7 +14,7 @@ const config = {
   },
   output: {
     path: resolve('dist'),
-    filename: '[name].js',
+    filename: '[name].min.js',
     library: 'more-select',
     libraryTarget: 'umd',
     umdNamedDefine: true
@@ -41,12 +43,8 @@ const config = {
         use: 'babel-loader'
       },
       {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader']
-      },
-      {
-        test: /\.scss$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+        test: /\.(css|scss)$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader']
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -66,6 +64,12 @@ const config = {
           }
         }
       }
+    ]
+  },
+  optimization: {
+    minimizer: [
+      new TerserJSPlugin({}),
+      new OptimizeCSSAssetsPlugin({})
     ]
   },
   devServer: {
@@ -95,6 +99,12 @@ module.exports = (env, argv) => {
     config.entry = {
       'more-select': './src/components/select/index.js'
     }
+    config.plugins.push(
+      new MiniCssExtractPlugin({
+        filename: 'style.min.css',
+        chunkFilename: '[id].css',
+      })
+    )
     config.externals = 'vue'
   }
   return config
