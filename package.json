@@ -11,8 +11,10 @@
     "vue-component"
   ],
   "scripts": {
-    "dev": "webpack-dev-server --mode development --hot --color",
-    "build": "webpack --mode production"
+    "dev": "webpack-dev-server --env.dev --hot --color",
+    "build": "webpack --env.prod",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
   },
   "main": "dist/more-select.min.js",
   "author": "riadloc",
@@ -56,6 +58,7 @@
     "vue-loader": "^15.7.0",
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
+    "vuepress": "^1.0.0-alpha.47",
     "webpack": "^4.30.0",
     "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.3.1"
