@@ -1,4 +1,7 @@
 # More Select
+[![npm version](https://img.shields.io/npm/v/more-select.svg?label=version&style=popout-square)](https://www.npmjs.com/package/more-select)
+[![Vue](https://img.shields.io/github/package-json/dependency-version/riadloc/more-select/vue.svg?style=popout-square)](https://github.com/Riadloc/more-select)
+[![Licence](https://img.shields.io/npm/l/more-select.svg?style=popout-square)](https://github.com/Riadloc/more-select)
 
 ## Description
 More Select, a vue component, can split steps to load options. Can used in iView, Element to emit Form events, also the events and style can be customized. 
