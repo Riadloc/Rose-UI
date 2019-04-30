@@ -8,86 +8,87 @@ const resolve = function (dir) {
   return path.join(__dirname, dir)
 }
 
-const config = {
-  entry: {
-    app: './src/main.js'
-  },
-  output: {
-    path: resolve('dist'),
-    filename: '[name].min.js',
-    library: 'more-select',
-    libraryTarget: 'umd',
-    umdNamedDefine: true
-  },
-  resolve: {
-    extensions: ['.js', '.vue', '.json'],
-    modules: [
-      resolve('node_modules'),
-      resolve('src')
-    ],
-    alias: {
-      'vue$': 'vue/dist/vue.esm.js',
-      '@': resolve('src')
-    }
-  },
-  module: {
-    rules: [
-      {
-        test: /\.vue$/,
-        include: resolve('src'),
-        use: 'vue-loader'
-      },
-      {
-        test: /\.js$/,
-        include: resolve('src'),
-        use: 'babel-loader'
-      },
-      {
-        test: /\.(css|scss)$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader']
-      },
-      {
-        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000
-          }
-        }
-      },
-      {
-        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000
-          }
-        }
-      }
-    ]
-  },
-  optimization: {
-    minimizer: [
-      new TerserJSPlugin({}),
-      new OptimizeCSSAssetsPlugin({})
-    ]
-  },
-  devServer: {
-    compress: true,
-    overlay: {
-      warnings: true,
-      errors: true
+module.exports = (env) => {
+  const config = {
+    entry: {
+      app: './src/main.js'
     },
-    port: 9000,
-    stats: 'errors-only'
-  },
-  plugins: [
-    new VueLoaderPlugin()
-  ]
-}
+    output: {
+      path: resolve('dist'),
+      filename: '[name].min.js',
+      library: 'more-select',
+      libraryTarget: 'umd',
+      umdNamedDefine: true
+    },
+    resolve: {
+      extensions: ['.js', '.vue', '.json'],
+      modules: [
+        resolve('node_modules'),
+        resolve('src')
+      ],
+      alias: {
+        'vue$': 'vue/dist/vue.esm.js',
+        '@': resolve('src')
+      }
+    },
+    module: {
+      rules: [
+        {
+          test: /\.vue$/,
+          include: resolve('src'),
+          use: 'vue-loader'
+        },
+        {
+          test: /\.js$/,
+          include: resolve('src'),
+          use: 'babel-loader'
+        },
+        {
+          test: /\.(css|scss)$/,
+          use: [env.dev ? 'style-loader' : MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader']
+        },
+        {
+          test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+          use: {
+            loader: 'url-loader',
+            options: {
+              limit: 10000
+            }
+          }
+        },
+        {
+          test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+          use: {
+            loader: 'url-loader',
+            options: {
+              limit: 10000
+            }
+          }
+        }
+      ]
+    },
+    optimization: {
+      minimizer: [
+        new TerserJSPlugin({}),
+        new OptimizeCSSAssetsPlugin({})
+      ]
+    },
+    devServer: {
+      compress: true,
+      overlay: {
+        warnings: true,
+        errors: true
+      },
+      port: 9000,
+      stats: 'errors-only'
+    },
+    plugins: [
+      new VueLoaderPlugin()
+    ]
+  }
 
-module.exports = (env, argv) => {
-  if (argv.mode === 'development') {
+  if (env.dev) {
+    config.mode = 'development'
     config.plugins.push(
       new HtmlWebpackPlugin({
         title: 'More Select',
@@ -95,7 +96,8 @@ module.exports = (env, argv) => {
         template: './public/index.html'
       })
     )
-  } else if (argv.mode === 'production') {
+  } else if (env.prod) {
+    config.mode = 'production'
     config.entry = {
       'more-select': './src/components/select/index.js'
     }
@@ -107,5 +109,6 @@ module.exports = (env, argv) => {
     )
     config.externals = 'vue'
   }
+
   return config
 }
