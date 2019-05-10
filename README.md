@@ -8,24 +8,48 @@ More Select, a vue component, can split steps to load options. Can used in iView
 
 More Select拥有分步加载传入Options的功能，滚动触底触发。可以避免一次性渲染所有Options造成浏览器的响应卡顿。用于iView或Element的Form组件中时，可以触发Form事件从而实现校验。同时可以自定义更多事件和显示样式。
 
+## Demo
+![demo](./public/images/more-select.gif)
+
 ## Installation
-```console
-npm install more-select -S
+```
+npm i more-select -S
 ```
 ## Usage
 **Global register**
 ```javascript
 import MoreSelect from 'more-select'
-import 'more-select/dist/style.min.css'
+import 'more-select/dist/more-select.css'
 Vue.use(MoreSelect)
 ```
 **In singgle component**
 ```javascript
 import { MoreSelect, MoreOption } from 'more-select'
-import 'more-select/dist/style.min.css'
+import 'more-select/dist/more-select.css'
 export default {
   components: { MoreSelect, MoreOption }
 }
+```
+
+## example
+```html
+<more-select
+  v-model="user"
+  multiple
+  filterable
+  clearable
+  allow-create
+  :load-more="20"
+  style="width: 600px;"
+  >
+    <more-option
+      v-for="(item, index) in districts"
+      :key="index"
+      :value="item"
+      >
+        {{ item }}
+    </more-option>
+</more-select>
 ```
 
 ## Select Props
