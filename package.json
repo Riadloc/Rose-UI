@@ -11,8 +11,8 @@
     "vue-component"
   ],
   "scripts": {
-    "dev": "webpack-dev-server --mode development --hot --color",
-    "build": "webpack --mode production"
+    "dev": "webpack-dev-server --env.dev --hot --color",
+    "build": "webpack --env.prod"
   },
   "main": "dist/more-select.min.js",
   "author": "riadloc",

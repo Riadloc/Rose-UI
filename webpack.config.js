@@ -103,7 +103,7 @@ module.exports = (env) => {
     }
     config.plugins.push(
       new MiniCssExtractPlugin({
-        filename: 'style.min.css',
+        filename: 'more-select.css',
         chunkFilename: '[id].css',
       })
     )
